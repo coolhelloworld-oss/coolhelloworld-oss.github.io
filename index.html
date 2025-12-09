@@ -5,17 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hello World Art</title>
   <style>
+    :root {
+      --glass: rgba(255, 255, 255, 0.12);
+      --glass-strong: rgba(255, 255, 255, 0.2);
+      --border: rgba(255, 255, 255, 0.3);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+    }
+
     body {
       margin: 0;
-      height: 100vh;
+      min-height: 100vh;
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+      background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.08), transparent 30%),
+        radial-gradient(circle at 80% 10%, rgba(255, 255, 255, 0.08), transparent 25%),
+        linear-gradient(135deg, #0f172a, #1a2a6c, #b21f1f, #fdbb2d);
       background-size: 400% 400%;
-      animation: gradientShift 20s ease infinite;
+      animation: gradientShift 16s ease infinite;
       font-family: 'Poppins', sans-serif;
+      color: #e9ecf2;
+      padding: 24px;
+      box-sizing: border-box;
     }
 
     @keyframes gradientShift {
@@ -26,22 +38,54 @@
 
     .hello-container {
       position: relative;
+      max-width: 960px;
+      width: 100%;
       text-align: center;
       color: white;
       z-index: 2;
     }
 
+    .glass-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 32px;
+      padding: 48px 40px 40px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      display: grid;
+      gap: 24px;
+    }
+
+    .badge-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--glass-strong);
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      font-size: 12px;
+      width: fit-content;
+      margin: 0 auto;
+    }
+
     h1 {
-      font-size: 5em;
+      font-size: clamp(3.5rem, 6vw, 5.5rem);
       font-weight: 900;
-      letter-spacing: 5px;
-      background: linear-gradient(90deg, #ff00cc, #3333ff, #00ffcc);
+      letter-spacing: 6px;
+      margin: 0;
+      background: linear-gradient(90deg, #ff00cc, #60a5fa, #00ffcc, #fcd34d);
       background-size: 200% auto;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      animation: shine 4s linear infinite, float 4s ease-in-out infinite;
+      animation: shine 4s linear infinite, float 5s ease-in-out infinite;
       transition: transform 0.5s ease, filter 0.5s ease;
       cursor: pointer;
+      text-shadow: 0 0 30px rgba(255, 255, 255, 0.15);
     }
 
     @keyframes shine {
@@ -55,17 +99,17 @@
 
     /* Hover/Tap Effekt */
     h1.active {
-      transform: scale(1.3);
-      filter: drop-shadow(0 0 30px white) brightness(2);
+      transform: scale(1.12);
+      filter: drop-shadow(0 0 35px rgba(255, 255, 255, 0.9)) brightness(1.8);
     }
 
     /* Glow-Kreise */
     .circle {
       position: absolute;
       border-radius: 50%;
-      opacity: 0.6;
+      opacity: 0.55;
       filter: blur(50px);
-      animation: pulse 8s infinite ease-in-out;
+      animation: pulse 9s infinite ease-in-out;
     }
 
     @keyframes pulse {
@@ -73,9 +117,9 @@
       50% { transform: scale(1.5);}
     }
 
-    .c1 { width: 300px; height: 300px; background: #ff0057; top: -150px; left: -150px;}
-    .c2 { width: 400px; height: 400px; background: #00ffee; bottom: -200px; right: -200px;}
-    .c3 { width: 250px; height: 250px; background: #ffff00; top: 20%; right: 10%;}
+    .c1 { width: 320px; height: 320px; background: #ff0057; top: -140px; left: -160px;}
+    .c2 { width: 420px; height: 420px; background: #00ffee; bottom: -200px; right: -180px;}
+    .c3 { width: 280px; height: 280px; background: #fdd835; top: 24%; right: 8%;}
 
     /* Konfetti */
     .confetti {
@@ -83,14 +127,15 @@
       width: 10px;
       height: 10px;
       background: #fff;
-      opacity: 0.7;
+      opacity: 0.75;
       animation: fall linear infinite;
       z-index: 1;
+      border-radius: 4px;
     }
 
     @keyframes fall {
       0% { transform: translateY(-100vh) rotate(0deg);}
-      100% { transform: translateY(100vh) rotate(360deg);}
+      100% { transform: translateY(110vh) rotate(360deg);}
     }
 
     /* Heller Lichtblitz beim Tippen */
@@ -111,6 +156,105 @@
       20% { opacity: 0.8; }
       100% { opacity: 0; }
     }
+
+    .content {
+      display: grid;
+      gap: 16px;
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: #d6d9e0;
+      max-width: 680px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 8px;
+    }
+
+    button {
+      padding: 14px 20px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: linear-gradient(120deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.08));
+      color: white;
+      font-size: 1rem;
+      letter-spacing: 0.4px;
+      cursor: pointer;
+      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(10px);
+    }
+
+    button:hover {
+      transform: translateY(-2px) scale(1.01);
+      border-color: rgba(255, 255, 255, 0.6);
+      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .search {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      margin: 8px auto 0;
+      width: min(720px, 100%);
+    }
+
+    .search input {
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.08);
+      color: white;
+      font-size: 1rem;
+      letter-spacing: 0.2px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    .search input::placeholder {
+      color: #cfd5e3;
+    }
+
+    .search button {
+      padding-inline: 16px;
+      white-space: nowrap;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .stat {
+      padding: 16px;
+      border-radius: 16px;
+      background: var(--glass-strong);
+      border: 1px solid var(--border);
+      text-align: center;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.6rem;
+      margin-bottom: 4px;
+      color: #fff;
+    }
+
+    .stat span { color: #c8ccdd; }
   </style>
 </head>
 <body>
@@ -118,7 +262,47 @@
     <div class="circle c1"></div>
     <div class="circle c2"></div>
     <div class="circle c3"></div>
-    <h1 id="hello">Hello World!</h1>
+
+    <div class="glass-card">
+      <div class="badge-row">Designed to sparkle • Built to say hello</div>
+      <div class="content">
+        <h1 id="hello" title="Tap or hover to energize">Hello World!</h1>
+        <p class="subtitle">
+          A vibrant greeting for every screen. Hover or tap the headline to launch a burst of light,
+          or shuffle through global salutations and find your favorite way to say hello.
+        </p>
+        <div class="actions">
+          <button id="randomize">🎲 Neue Begrüßung</button>
+          <button id="reset">↩️ Zurück zu Hello World</button>
+        </div>
+        <form id="search-form" class="search" role="search" aria-label="Google-Suche">
+          <input
+            id="search-input"
+            type="search"
+            name="q"
+            placeholder="Suchbegriff eingeben und automatisch mit Google suchen"
+            autocomplete="on"
+            aria-label="Google-Suchfeld"
+            required
+          />
+          <button type="submit">🔍 Google-Suche</button>
+        </form>
+        <div class="stats" aria-label="Page highlights">
+          <div class="stat">
+            <strong id="greeting-count">12</strong>
+            <span>Begrüßungen an Bord</span>
+          </div>
+          <div class="stat">
+            <strong>4K</strong>
+            <span>Farbige Pixel im Hintergrund</span>
+          </div>
+          <div class="stat">
+            <strong>∞</strong>
+            <span>Schimmernde Laune</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="flash" id="flash"></div>
 
@@ -138,6 +322,427 @@
     // Hover/Tap Effekt
     const hello = document.getElementById("hello");
     const flash = document.getElementById("flash");
+    const greetings = [
+  "Hello World!",
+  "Hola Mundo!",
+  "Bonjour le Monde!",
+  "Hallo Welt!",
+  "Ciao Mondo!",
+  "Ol\u00e1 Mundo!",
+  "\u3053\u3093\u306b\u3061\u306f\u4e16\u754c!",
+  "\uc548\ub155\ud558\uc138\uc694 \uc138\uacc4!",
+  "\u0645\u0631\u062d\u0628\u0627 \u0628\u0627\u0644\u0639\u0627\u0644\u0645!",
+  "\u0928\u092e\u0938\u094d\u0924\u0947 \u0926\u0941\u0928\u093f\u092f\u093e!",
+  "\u041f\u0440\u0438\u0432\u0435\u0442, \u043c\u0438\u0440!",
+  "Hej V\u00e4rlden!",
+  "Hello World! (A3)",
+  "Hello World! (A3 Az)",
+  "Hello World! (A3 Az Koic)",
+  "Hello World! (Aa Dj)",
+  "Hello World! (Aa Er)",
+  "Hello World! (Aa Et)",
+  "Hello World! (Af)",
+  "Hello World! (Af Za)",
+  "Hello World! (Agr Pe)",
+  "Hello World! (Ak Gh)",
+  "Hello World! (Am)",
+  "Hello World! (Am Et)",
+  "Hello World! (American)",
+  "Hello World! (An Es)",
+  "Hello World! (Anp In)",
+  "Hello World! (Ar)",
+  "Hello World! (Ar Aa)",
+  "Hello World! (Ar Ae)",
+  "Hello World! (Ar Bh)",
+  "Hello World! (Ar Dz)",
+  "Hello World! (Ar Eg)",
+  "Hello World! (Ar In)",
+  "Hello World! (Ar Iq)",
+  "Hello World! (Ar Jo)",
+  "Hello World! (Ar Kw)",
+  "Hello World! (Ar Lb)",
+  "Hello World! (Ar Ly)",
+  "Hello World! (Ar Ma)",
+  "Hello World! (Ar Om)",
+  "Hello World! (Ar Qa)",
+  "Hello World! (Ar Sa)",
+  "Hello World! (Ar Sd)",
+  "Hello World! (Ar Ss)",
+  "Hello World! (Ar Sy)",
+  "Hello World! (Ar Tn)",
+  "Hello World! (Ar Ye)",
+  "Hello World! (Arabic)",
+  "Hello World! (As)",
+  "Hello World! (As In)",
+  "Hello World! (Ast Es)",
+  "Hello World! (Ayc Pe)",
+  "Hello World! (Az)",
+  "Hello World! (Az Az)",
+  "Hello World! (Az Az Iso88599e)",
+  "Hello World! (Az Ir)",
+  "Hello World! (Be)",
+  "Hello World! (Be Latin)",
+  "Hello World! (Be Bg Utf8)",
+  "Hello World! (Be By)",
+  "Hello World! (Be By Latin)",
+  "Hello World! (Bem Zm)",
+  "Hello World! (Ber Dz)",
+  "Hello World! (Ber Ma)",
+  "Hello World! (Bg)",
+  "Hello World! (Bg Bg)",
+  "Hello World! (Bhb In Utf8)",
+  "Hello World! (Bho In)",
+  "Hello World! (Bho Np)",
+  "Hello World! (Bi Vu)",
+  "Hello World! (Bn Bd)",
+  "Hello World! (Bn In)",
+  "Hello World! (Bo Cn)",
+  "Hello World! (Bo In)",
+  "Hello World! (Bokmal)",
+  "Hello World! (Bokm L)",
+  "Hello World! (Br)",
+  "Hello World! (Br Fr)",
+  "Hello World! (Brx In)",
+  "Hello World! (Bs)",
+  "Hello World! (Bs Ba)",
+  "Hello World! (Bulgarian)",
+  "Hello World! (Byn Er)",
+  "Hello World! (C)",
+  "Hello World! (C French)",
+  "Hello World! (C Ascii)",
+  "Hello World! (C En)",
+  "Hello World! (C Iso88591)",
+  "Hello World! (C Utf8)",
+  "Hello World! (C C)",
+  "Hello World! (C C C)",
+  "Hello World! (Ca)",
+  "Hello World! (Ca Ad)",
+  "Hello World! (Ca Es)",
+  "Hello World! (Ca Es Valencia)",
+  "Hello World! (Ca Fr)",
+  "Hello World! (Ca It)",
+  "Hello World! (Catalan)",
+  "Hello World! (Ce Ru)",
+  "Hello World! (Cextend)",
+  "Hello World! (Chinese S)",
+  "Hello World! (Chinese T)",
+  "Hello World! (Chr Us)",
+  "Hello World! (Ckb Iq)",
+  "Hello World! (Cmn Tw)",
+  "Hello World! (Crh Ua)",
+  "Hello World! (Croatian)",
+  "Hello World! (Cs)",
+  "Hello World! (Cs Cs)",
+  "Hello World! (Cs Cz)",
+  "Hello World! (Csb Pl)",
+  "Hello World! (Cv Ru)",
+  "Hello World! (Cy)",
+  "Hello World! (Cy Gb)",
+  "Hello World! (Cz)",
+  "Hello World! (Cz Cz)",
+  "Hello World! (Czech)",
+  "Hello World! (Da)",
+  "Hello World! (Da Dk)",
+  "Hello World! (Danish)",
+  "Hello World! (Dansk)",
+  "Hello World! (De)",
+  "Hello World! (De At)",
+  "Hello World! (De Be)",
+  "Hello World! (De Ch)",
+  "Hello World! (De De)",
+  "Hello World! (De It)",
+  "Hello World! (De Li Utf8)",
+  "Hello World! (De Lu)",
+  "Hello World! (Deutsch)",
+  "Hello World! (Doi In)",
+  "Hello World! (Dutch)",
+  "Hello World! (Dutch Iso88591)",
+  "Hello World! (Dv Mv)",
+  "Hello World! (Dz Bt)",
+  "Hello World! (Ee)",
+  "Hello World! (Ee Ee)",
+  "Hello World! (Eesti)",
+  "Hello World! (El)",
+  "Hello World! (El Cy)",
+  "Hello World! (El Gr)",
+  "Hello World! (El Gr Euro)",
+  "Hello World! (En)",
+  "Hello World! (En Ag)",
+  "Hello World! (En Au)",
+  "Hello World! (En Be)",
+  "Hello World! (En Bw)",
+  "Hello World! (En Ca)",
+  "Hello World! (En Dk)",
+  "Hello World! (En Dl Utf8)",
+  "Hello World! (En Gb)",
+  "Hello World! (En Hk)",
+  "Hello World! (En Ie)",
+  "Hello World! (En Il)",
+  "Hello World! (En In)",
+  "Hello World! (En Ng)",
+  "Hello World! (En Nz)",
+  "Hello World! (En Ph)",
+  "Hello World! (En Sc Utf8)",
+  "Hello World! (En Sg)",
+  "Hello World! (En Uk)",
+  "Hello World! (En Us)",
+  "Hello World! (En Us Euro Euro)",
+  "Hello World! (En Za)",
+  "Hello World! (En Zm)",
+  "Hello World! (En Zw)",
+  "Hello World! (En Zw Utf8)",
+  "Hello World! (Eng Gb)",
+  "Hello World! (English)",
+  "Hello World! (English Iso88591)",
+  "Hello World! (English Uk)",
+  "Hello World! (English United States)",
+  "Hello World! (English United States 437)",
+  "Hello World! (English Us)",
+  "Hello World! (Eo)",
+  "Hello World! (Eo Utf8)",
+  "Hello World! (Eo Eo)",
+  "Hello World! (Eo Us Utf8)",
+  "Hello World! (Eo Xx)",
+  "Hello World! (Es)",
+  "Hello World! (Es Ar)",
+  "Hello World! (Es Bo)",
+  "Hello World! (Es Cl)",
+  "Hello World! (Es Co)",
+  "Hello World! (Es Cr)",
+  "Hello World! (Es Cu)",
+  "Hello World! (Es Do)",
+  "Hello World! (Es Ec)",
+  "Hello World! (Es Es)",
+  "Hello World! (Es Gt)",
+  "Hello World! (Es Hn)",
+  "Hello World! (Es Mx)",
+  "Hello World! (Es Ni)",
+  "Hello World! (Es Pa)",
+  "Hello World! (Es Pe)",
+  "Hello World! (Es Pr)",
+  "Hello World! (Es Py)",
+  "Hello World! (Es Sv)",
+  "Hello World! (Es Us)",
+  "Hello World! (Es Uy)",
+  "Hello World! (Es Ve)",
+  "Hello World! (Estonian)",
+  "Hello World! (Et)",
+  "Hello World! (Et Ee)",
+  "Hello World! (Eu)",
+  "Hello World! (Eu Es)",
+  "Hello World! (Eu Fr)",
+  "Hello World! (Fa)",
+  "Hello World! (Fa Ir)",
+  "Hello World! (Fa Ir Isiri3342)",
+  "Hello World! (Ff Sn)",
+  "Hello World! (Fi)",
+  "Hello World! (Fi Fi)",
+  "Hello World! (Fil Ph)",
+  "Hello World! (Finnish)",
+  "Hello World! (Fo)",
+  "Hello World! (Fo Fo)",
+  "Hello World! (Fr)",
+  "Hello World! (Fr Be)",
+  "Hello World! (Fr Ca)",
+  "Hello World! (Fr Ch)",
+  "Hello World! (Fr Fr)",
+  "Hello World! (Fr Lu)",
+  "Hello World! (Fran Ais)",
+  "Hello World! (Fre Fr)",
+  "Hello World! (French)",
+  "Hello World! (French Iso88591)",
+  "Hello World! (French France)",
+  "Hello World! (Fur It)",
+  "Hello World! (Fy De)",
+  "Hello World! (Fy Nl)",
+  "Hello World! (Ga)",
+  "Hello World! (Ga Ie)",
+  "Hello World! (Galego)",
+  "Hello World! (Galician)",
+  "Hello World! (Gd)",
+  "Hello World! (Gd Gb)",
+  "Hello World! (Ger De)",
+  "Hello World! (German)",
+  "Hello World! (German Iso88591)",
+  "Hello World! (German Germany)",
+  "Hello World! (Gez Er)",
+  "Hello World! (Gez Et)",
+  "Hello World! (Gl)",
+  "Hello World! (Gl Es)",
+  "Hello World! (Greek)",
+  "Hello World! (Gu In)",
+  "Hello World! (Gv)",
+  "Hello World! (Gv Gb)",
+  "Hello World! (Ha Ng)",
+  "Hello World! (Hak Tw)",
+  "Hello World! (He)",
+  "Hello World! (He Il)",
+  "Hello World! (Hebrew)",
+  "Hello World! (Hi)",
+  "Hello World! (Hi In)",
+  "Hello World! (Hi In Isciidev)",
+  "Hello World! (Hif Fj)",
+  "Hello World! (Hne)",
+  "Hello World! (Hne In)",
+  "Hello World! (Hr)",
+  "Hello World! (Hr Hr)",
+  "Hello World! (Hrvatski)",
+  "Hello World! (Hsb De)",
+  "Hello World! (Ht Ht)",
+  "Hello World! (Hu)",
+  "Hello World! (Hu Hu)",
+  "Hello World! (Hungarian)",
+  "Hello World! (Hy Am)",
+  "Hello World! (Hy Am Armscii8)",
+  "Hello World! (Ia)",
+  "Hello World! (Ia Fr)",
+  "Hello World! (Icelandic)",
+  "Hello World! (Id)",
+  "Hello World! (Id Id)",
+  "Hello World! (Ig Ng)",
+  "Hello World! (Ik Ca)",
+  "Hello World! (In)",
+  "Hello World! (In Id)",
+  "Hello World! (Is)",
+  "Hello World! (Is Is)",
+  "Hello World! (Iso 8859 1)",
+  "Hello World! (Iso 8859 15)",
+  "Hello World! (Iso8859 1)",
+  "Hello World! (Iso8859 15)",
+  "Hello World! (It)",
+  "Hello World! (It Ch)",
+  "Hello World! (It It)",
+  "Hello World! (Italian)",
+  "Hello World! (Iu)",
+  "Hello World! (Iu Ca)",
+  "Hello World! (Iu Ca Nunacom8)",
+  "Hello World! (Iw)",
+  "Hello World! (Iw Il)",
+  "Hello World! (Iw Il Utf8)",
+  "Hello World! (Ja)",
+  "Hello World! (Ja Jp)",
+  "Hello World! (Ja Jp Euc)",
+  "Hello World! (Ja Jp Mscode)",
+  "Hello World! (Ja Jp Pck)",
+  "Hello World! (Japan)",
+  "Hello World! (Japanese)",
+  "Hello World! (Japanese Euc)",
+  "Hello World! (Jp Jp)",
+  "Hello World! (Ka)",
+  "Hello World! (Ka Ge)",
+  "Hello World! (Ka Ge Georgianacademy)",
+  "Hello World! (Ka Ge Georgianps)",
+  "Hello World! (Ka Ge Georgianrs)",
+  "Hello World! (Kab Dz)",
+  "Hello World! (Kk Kz)",
+  "Hello World! (Kl)",
+  "Hello World! (Kl Gl)",
+  "Hello World! (Km Kh)",
+  "Hello World! (Kn)",
+  "Hello World! (Kn In)",
+  "Hello World! (Ko)",
+  "Hello World! (Ko Kr)",
+  "Hello World! (Ko Kr Euc)",
+  "Hello World! (Kok In)",
+  "Hello World! (Korean)",
+  "Hello World! (Korean Euc)",
+  "Hello World! (Ks)",
+  "Hello World! (Ks In)",
+  "Hello World! (Ks In Devanagari Utf8)",
+  "Hello World! (Ku Tr)",
+  "Hello World! (Kw)",
+  "Hello World! (Kw Gb)",
+  "Hello World! (Ky)",
+  "Hello World! (Ky Kg)",
+  "Hello World! (Lb Lu)",
+  "Hello World! (Lg Ug)",
+  "Hello World! (Li Be)",
+  "Hello World! (Li Nl)",
+  "Hello World! (Lij It)",
+  "Hello World! (Lithuanian)",
+  "Hello World! (Ln Cd)",
+  "Hello World! (Lo)",
+  "Hello World! (Lo La)",
+  "Hello World! (Lo La Cp1133)",
+  "Hello World! (Lo La Ibmcp1133)",
+  "Hello World! (Lo La Mulelao1)",
+  "Hello World! (Lt)",
+  "Hello World! (Lt Lt)",
+  "Hello World! (Lv)",
+  "Hello World! (Lv Lv)",
+  "Hello World! (Lzh Tw)",
+  "Hello World! (Mag In)",
+  "Hello World! (Mai)",
+  "Hello World! (Mai In)",
+  "Hello World! (Mai Np)",
+  "Hello World! (Mfe Mu)",
+  "Hello World! (Mg Mg)",
+  "Hello World! (Mhr Ru)",
+  "Hello World! (Mi)",
+  "Hello World! (Mi Nz)",
+  "Hello World! (Miq Ni)",
+  "Hello World! (Mjw In)",
+  "Hello World! (Mk)",
+  "Hello World! (Mk Mk)",
+  "Hello World! (Ml)",
+  "Hello World! (Ml In)",
+  "Hello World! (Mn Mn)",
+  "Hello World! (Mni In)",
+  "Hello World! (Mr)",
+  "Hello World! (Mr In)",
+  "Hello World! (Ms)",
+  "Hello World! (Ms My)",
+  "Hello World! (Mt)",
+  "Hello World! (Mt Mt)",
+  "Hello World! (My Mm)",
+  "Hello World! (Nan Tw)",
+  "Hello World! (Nb)",
+  "Hello World! (Nb No)",
+  "Hello World! (Nds De)",
+  "Hello World! (Nds Nl)",
+  "Hello World! (Ne Np)",
+  "Hello World! (Nhn Mx)",
+  "Hello World! (Niu Nu)",
+  "Hello World! (Niu Nz)",
+  "Hello World! (Nl)",
+  "Hello World! (Nl Aw)",
+  "Hello World! (Nl Be)",
+  "Hello World! (Nl Nl)",
+  "Hello World! (Nn)",
+  "Hello World! (Nn No)",
+  "Hello World! (No)",
+  "Hello World! (No Nynorsk)",
+  "Hello World! (No No)",
+  "Hello World! (No No Iso88591 Bokmal)",
+  "Hello World! (No No Iso88591 Nynorsk)",
+  "Hello World! (Norwegian)",
+  "Hello World! (Nr)",
+  "Hello World! (Nr Za)",
+  "Hello World! (Nso)",
+  "Hello World! (Nso Za)",
+  "Hello World! (Ny)",
+  "Hello World! (Ny No)",
+  "Hello World! (Nynorsk)",
+  "Hello World! (Oc)",
+  "Hello World! (Oc Fr)",
+  "Hello World! (Om Et)",
+  "Hello World! (Om Ke)",
+  "Hello World! (Or)",
+  "Hello World! (Or In)",
+  "Hello World! (Os Ru)",
+  "Hello World! (Pa)",
+  "Hello World! (Pa In)",
+  "Hello World! (Pa Pk)",
+  "Hello World! (Pap An)",
+  "Hello World! (Pap Aw)",
+];
+    const randomizeButton = document.getElementById("randomize");
+    const resetButton = document.getElementById("reset");
+    const greetingCount = document.getElementById("greeting-count");
+    const searchForm = document.getElementById("search-form");
+    const searchInput = document.getElementById("search-input");
+
+    greetingCount.textContent = greetings.length;
 
     // Desktop Hover
     hello.addEventListener("mouseenter", () => {
@@ -155,6 +760,31 @@
         hello.classList.remove("active");
         flash.classList.remove("active");
       }, 800);
+    });
+
+    randomizeButton.addEventListener("click", () => {
+      const current = hello.textContent;
+      let nextGreeting = current;
+      while (nextGreeting === current) {
+        nextGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+      }
+      hello.textContent = nextGreeting;
+      hello.classList.add("active");
+      setTimeout(() => hello.classList.remove("active"), 700);
+    });
+
+    resetButton.addEventListener("click", () => {
+      hello.textContent = greetings[0];
+      hello.classList.add("active");
+      setTimeout(() => hello.classList.remove("active"), 700);
+    });
+
+    searchForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const query = searchInput.value.trim();
+      if (!query) return;
+      const url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+      window.open(url, "_blank", "noopener");
     });
   </script>
 </body>

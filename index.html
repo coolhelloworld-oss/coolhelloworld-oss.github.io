@@ -5,17 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hello World Art</title>
   <style>
+    :root {
+      --glass: rgba(255, 255, 255, 0.12);
+      --glass-strong: rgba(255, 255, 255, 0.2);
+      --border: rgba(255, 255, 255, 0.3);
+      --shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+    }
+
     body {
       margin: 0;
-      height: 100vh;
+      min-height: 100vh;
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+      background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.08), transparent 30%),
+        radial-gradient(circle at 80% 10%, rgba(255, 255, 255, 0.08), transparent 25%),
+        linear-gradient(135deg, #0f172a, #1a2a6c, #b21f1f, #fdbb2d);
       background-size: 400% 400%;
-      animation: gradientShift 20s ease infinite;
+      animation: gradientShift 16s ease infinite;
       font-family: 'Poppins', sans-serif;
+      color: #e9ecf2;
+      padding: 24px;
+      box-sizing: border-box;
     }
 
     @keyframes gradientShift {
@@ -26,22 +38,54 @@
 
     .hello-container {
       position: relative;
+      max-width: 960px;
+      width: 100%;
       text-align: center;
       color: white;
       z-index: 2;
     }
 
+    .glass-card {
+      position: relative;
+      overflow: hidden;
+      border-radius: 32px;
+      padding: 48px 40px 40px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      display: grid;
+      gap: 24px;
+    }
+
+    .badge-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--glass-strong);
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      font-size: 12px;
+      width: fit-content;
+      margin: 0 auto;
+    }
+
     h1 {
-      font-size: 5em;
+      font-size: clamp(3.5rem, 6vw, 5.5rem);
       font-weight: 900;
-      letter-spacing: 5px;
-      background: linear-gradient(90deg, #ff00cc, #3333ff, #00ffcc);
+      letter-spacing: 6px;
+      margin: 0;
+      background: linear-gradient(90deg, #ff00cc, #60a5fa, #00ffcc, #fcd34d);
       background-size: 200% auto;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      animation: shine 4s linear infinite, float 4s ease-in-out infinite;
+      animation: shine 4s linear infinite, float 5s ease-in-out infinite;
       transition: transform 0.5s ease, filter 0.5s ease;
       cursor: pointer;
+      text-shadow: 0 0 30px rgba(255, 255, 255, 0.15);
     }
 
     @keyframes shine {
@@ -55,17 +99,17 @@
 
     /* Hover/Tap Effekt */
     h1.active {
-      transform: scale(1.3);
-      filter: drop-shadow(0 0 30px white) brightness(2);
+      transform: scale(1.12);
+      filter: drop-shadow(0 0 35px rgba(255, 255, 255, 0.9)) brightness(1.8);
     }
 
     /* Glow-Kreise */
     .circle {
       position: absolute;
       border-radius: 50%;
-      opacity: 0.6;
+      opacity: 0.55;
       filter: blur(50px);
-      animation: pulse 8s infinite ease-in-out;
+      animation: pulse 9s infinite ease-in-out;
     }
 
     @keyframes pulse {
@@ -73,9 +117,9 @@
       50% { transform: scale(1.5);}
     }
 
-    .c1 { width: 300px; height: 300px; background: #ff0057; top: -150px; left: -150px;}
-    .c2 { width: 400px; height: 400px; background: #00ffee; bottom: -200px; right: -200px;}
-    .c3 { width: 250px; height: 250px; background: #ffff00; top: 20%; right: 10%;}
+    .c1 { width: 320px; height: 320px; background: #ff0057; top: -140px; left: -160px;}
+    .c2 { width: 420px; height: 420px; background: #00ffee; bottom: -200px; right: -180px;}
+    .c3 { width: 280px; height: 280px; background: #fdd835; top: 24%; right: 8%;}
 
     /* Konfetti */
     .confetti {
@@ -83,14 +127,15 @@
       width: 10px;
       height: 10px;
       background: #fff;
-      opacity: 0.7;
+      opacity: 0.75;
       animation: fall linear infinite;
       z-index: 1;
+      border-radius: 4px;
     }
 
     @keyframes fall {
       0% { transform: translateY(-100vh) rotate(0deg);}
-      100% { transform: translateY(100vh) rotate(360deg);}
+      100% { transform: translateY(110vh) rotate(360deg);}
     }
 
     /* Heller Lichtblitz beim Tippen */
@@ -111,6 +156,105 @@
       20% { opacity: 0.8; }
       100% { opacity: 0; }
     }
+
+    .content {
+      display: grid;
+      gap: 16px;
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: #d6d9e0;
+      max-width: 680px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 8px;
+    }
+
+    button {
+      padding: 14px 20px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: linear-gradient(120deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.08));
+      color: white;
+      font-size: 1rem;
+      letter-spacing: 0.4px;
+      cursor: pointer;
+      transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(10px);
+    }
+
+    button:hover {
+      transform: translateY(-2px) scale(1.01);
+      border-color: rgba(255, 255, 255, 0.6);
+      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .search {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      margin: 8px auto 0;
+      width: min(720px, 100%);
+    }
+
+    .search input {
+      padding: 14px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.08);
+      color: white;
+      font-size: 1rem;
+      letter-spacing: 0.2px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+
+    .search input::placeholder {
+      color: #cfd5e3;
+    }
+
+    .search button {
+      padding-inline: 16px;
+      white-space: nowrap;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .stat {
+      padding: 16px;
+      border-radius: 16px;
+      background: var(--glass-strong);
+      border: 1px solid var(--border);
+      text-align: center;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.6rem;
+      margin-bottom: 4px;
+      color: #fff;
+    }
+
+    .stat span { color: #c8ccdd; }
   </style>
 </head>
 <body>
@@ -118,7 +262,47 @@
     <div class="circle c1"></div>
     <div class="circle c2"></div>
     <div class="circle c3"></div>
-    <h1 id="hello">Hello World!</h1>
+
+    <div class="glass-card">
+      <div class="badge-row">Designed to sparkle • Built to say hello</div>
+      <div class="content">
+        <h1 id="hello" title="Tap or hover to energize">Hello World!</h1>
+        <p class="subtitle">
+          A vibrant greeting for every screen. Hover or tap the headline to launch a burst of light,
+          or shuffle through global salutations and find your favorite way to say hello.
+        </p>
+        <div class="actions">
+          <button id="randomize">🎲 Neue Begrüßung</button>
+          <button id="reset">↩️ Zurück zu Hello World</button>
+        </div>
+        <form id="search-form" class="search" role="search" aria-label="Google-Suche">
+          <input
+            id="search-input"
+            type="search"
+            name="q"
+            placeholder="Suchbegriff eingeben und automatisch mit Google suchen"
+            autocomplete="on"
+            aria-label="Google-Suchfeld"
+            required
+          />
+          <button type="submit">🔍 Google-Suche</button>
+        </form>
+        <div class="stats" aria-label="Page highlights">
+          <div class="stat">
+            <strong id="greeting-count">228</strong>
+            <span>Begrüßungen an Bord</span>
+          </div>
+          <div class="stat">
+            <strong>4K</strong>
+            <span>Farbige Pixel im Hintergrund</span>
+          </div>
+          <div class="stat">
+            <strong>∞</strong>
+            <span>Schimmernde Laune</span>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="flash" id="flash"></div>
 
@@ -138,6 +322,247 @@
     // Hover/Tap Effekt
     const hello = document.getElementById("hello");
     const flash = document.getElementById("flash");
+    const greetings = [
+      { language: "English", phrase: "Hello, World!" },
+      { language: "English (US)", phrase: "Hello, World!" },
+      { language: "English (UK)", phrase: "Hello, World!" },
+      { language: "English (Canada)", phrase: "Hello, World!" },
+      { language: "English (Australia)", phrase: "Hello, World!" },
+      { language: "English (India)", phrase: "Hello, World!" },
+      { language: "English (Ireland)", phrase: "Hello, World!" },
+      { language: "English (South Africa)", phrase: "Hello, World!" },
+      { language: "English (Philippines)", phrase: "Hello, World!" },
+      { language: "German", phrase: "Hallo, Welt!" },
+      { language: "German (Germany)", phrase: "Hallo, Welt!" },
+      { language: "German (Austria)", phrase: "Hallo, Welt!" },
+      { language: "German (Switzerland)", phrase: "Hallo, Welt!" },
+      { language: "German (Luxembourg)", phrase: "Hallo, Welt!" },
+      { language: "Spanish", phrase: "¡Hola, mundo!" },
+      { language: "Spanish (Spain)", phrase: "¡Hola, mundo!" },
+      { language: "Spanish (Mexico)", phrase: "¡Hola, mundo!" },
+      { language: "Spanish (Argentina)", phrase: "¡Hola, mundo!" },
+      { language: "Spanish (Colombia)", phrase: "¡Hola, mundo!" },
+      { language: "Spanish (Peru)", phrase: "¡Hola, mundo!" },
+      { language: "Spanish (Chile)", phrase: "¡Hola, mundo!" },
+      { language: "Spanish (Costa Rica)", phrase: "¡Hola, mundo!" },
+      { language: "Spanish (Panama)", phrase: "¡Hola, mundo!" },
+      { language: "Spanish (Guatemala)", phrase: "¡Hola, mundo!" },
+      { language: "Spanish (Venezuela)", phrase: "¡Hola, mundo!" },
+      { language: "Spanish (Bolivia)", phrase: "¡Hola, mundo!" },
+      { language: "Spanish (Ecuador)", phrase: "¡Hola, mundo!" },
+      { language: "French", phrase: "Bonjour, le monde !" },
+      { language: "French (France)", phrase: "Bonjour, le monde !" },
+      { language: "French (Canada)", phrase: "Bonjour, le monde !" },
+      { language: "French (Belgium)", phrase: "Bonjour, le monde !" },
+      { language: "French (Switzerland)", phrase: "Bonjour, le monde !" },
+      { language: "French (Senegal)", phrase: "Bonjour, le monde !" },
+      { language: "French (Cameroon)", phrase: "Bonjour, le monde !" },
+      { language: "French (Ivory Coast)", phrase: "Bonjour, le monde !" },
+      { language: "French (Madagascar)", phrase: "Bonjour, le monde !" },
+      { language: "French (Haiti)", phrase: "Bonjour, le monde !" },
+      { language: "Italian", phrase: "Ciao, mondo!" },
+      { language: "Portuguese", phrase: "Olá, mundo!" },
+      { language: "Portuguese (Brazil)", phrase: "Olá, mundo!" },
+      { language: "Portuguese (Portugal)", phrase: "Olá, mundo!" },
+      { language: "Portuguese (Angola)", phrase: "Olá, mundo!" },
+      { language: "Portuguese (Mozambique)", phrase: "Olá, mundo!" },
+      { language: "Portuguese (Cape Verde)", phrase: "Olá, mundo!" },
+      { language: "Portuguese (Guinea-Bissau)", phrase: "Olá, mundo!" },
+      { language: "Dutch", phrase: "Hallo, wereld!" },
+      { language: "Swedish", phrase: "Hej, världen!" },
+      { language: "Norwegian Bokmål", phrase: "Hei, verden!" },
+      { language: "Norwegian Nynorsk", phrase: "Hei, verda!" },
+      { language: "Danish", phrase: "Hej, verden!" },
+      { language: "Finnish", phrase: "Hei, maailma!" },
+      { language: "Icelandic", phrase: "Halló, heimur!" },
+      { language: "Faroese", phrase: "Hey, heimur!" },
+      { language: "Maltese", phrase: "Bongu, dinja!" },
+      { language: "Latvian", phrase: "Sveika, pasaule!" },
+      { language: "Lithuanian", phrase: "Sveikas, pasauli!" },
+      { language: "Estonian", phrase: "Tere, maailm!" },
+      { language: "Irish", phrase: "Haigh, a dhomhain!" },
+      { language: "Scottish Gaelic", phrase: "Halò, a shaoghail!" },
+      { language: "Welsh", phrase: "Helo, byd!" },
+      { language: "Breton", phrase: "Demat, bed!" },
+      { language: "Basque", phrase: "Kaixo, mundu!" },
+      { language: "Catalan", phrase: "Hola, món!" },
+      { language: "Galician", phrase: "Ola, mundo!" },
+      { language: "Romansh", phrase: "Allegra, mund!" },
+      { language: "Luxembourgish", phrase: "Moien, Welt!" },
+      { language: "Frisian", phrase: "Hoi, wrâld!" },
+      { language: "Slovak", phrase: "Ahoj, svet!" },
+      { language: "Czech", phrase: "Ahoj, světe!" },
+      { language: "Polish", phrase: "Witaj, świecie!" },
+      { language: "Russian", phrase: "Привет, мир!" },
+      { language: "Russian (Moscow)", phrase: "Привет, мир!" },
+      { language: "Russian (Siberia)", phrase: "Привет, мир!" },
+      { language: "Russian (Baltic)", phrase: "Привет, мир!" },
+      { language: "Russian (Kazakhstan)", phrase: "Привет, мир!" },
+      { language: "Ukrainian", phrase: "Привіт, світе!" },
+      { language: "Belarusian", phrase: "Прывітанне, свет!" },
+      { language: "Bulgarian", phrase: "Здрасти, свят!" },
+      { language: "Serbian", phrase: "Здраво, свете!" },
+      { language: "Croatian", phrase: "Bok, svijete!" },
+      { language: "Bosnian", phrase: "Zdravo, svijete!" },
+      { language: "Slovenian", phrase: "Pozdravljen, svet!" },
+      { language: "Macedonian", phrase: "Здраво, свету!" },
+      { language: "Romanian", phrase: "Salut, lume!" },
+      { language: "Hungarian", phrase: "Helló, világ!" },
+      { language: "Albanian", phrase: "Përshëndetje, botë!" },
+      { language: "Greek", phrase: "Γειά σου, κόσμε!" },
+      { language: "Armenian", phrase: "Բարեւ, աշխարհ!" },
+      { language: "Georgian", phrase: "გამარჯობა, მსოფლიო!" },
+      { language: "Turkish", phrase: "Merhaba, dünya!" },
+      { language: "Turkish (Istanbul)", phrase: "Merhaba, dünya!" },
+      { language: "Turkish (Ankara)", phrase: "Merhaba, dünya!" },
+      { language: "Turkish (Cyprus)", phrase: "Merhaba, dünya!" },
+      { language: "Azerbaijani", phrase: "Salam, dünya!" },
+      { language: "Kazakh", phrase: "Сәлем, әлем!" },
+      { language: "Uzbek", phrase: "Salom, dunyo!" },
+      { language: "Kyrgyz", phrase: "Салам, дүйнө!" },
+      { language: "Tajik", phrase: "Салом, ҷаҳон!" },
+      { language: "Turkmen", phrase: "Salam, dünýä!" },
+      { language: "Persian", phrase: "سلام دنیا!" },
+      { language: "Persian (Iran)", phrase: "سلام دنیا!" },
+      { language: "Persian (Tajikistan)", phrase: "سلام دنیا!" },
+      { language: "Persian (Afghanistan)", phrase: "سلام دنیا!" },
+      { language: "Pashto", phrase: "سلام نړی!" },
+      { language: "Dari", phrase: "سلام دنیا!" },
+      { language: "Kurdish Kurmanji", phrase: "Slav, dinyayê!" },
+      { language: "Kurdish Sorani", phrase: "سڵاو، جیهان!" },
+      { language: "Hebrew", phrase: "שלום, עולם!" },
+      { language: "Arabic", phrase: "مرحباً يا عالم!" },
+      { language: "Arabic (Egypt)", phrase: "مرحباً يا عالم!" },
+      { language: "Arabic (Morocco)", phrase: "مرحباً يا عالم!" },
+      { language: "Arabic (Jordan)", phrase: "مرحباً يا عالم!" },
+      { language: "Arabic (Iraq)", phrase: "مرحباً يا عالم!" },
+      { language: "Arabic (Saudi Arabia)", phrase: "مرحباً يا عالم!" },
+      { language: "Arabic (UAE)", phrase: "مرحباً يا عالم!" },
+      { language: "Arabic (Syria)", phrase: "مرحباً يا عالم!" },
+      { language: "Arabic (Lebanon)", phrase: "مرحباً يا عالم!" },
+      { language: "Arabic (Sudan)", phrase: "مرحباً يا عالم!" },
+      { language: "Somali", phrase: "Iska warran, aduunka!" },
+      { language: "Swahili", phrase: "Hujambo, dunia!" },
+      { language: "Swahili (Tanzania)", phrase: "Hujambo, dunia!" },
+      { language: "Swahili (Kenya)", phrase: "Hujambo, dunia!" },
+      { language: "Swahili (Uganda)", phrase: "Hujambo, dunia!" },
+      { language: "Swahili (Congo)", phrase: "Hujambo, dunia!" },
+      { language: "Swahili (Mozambique)", phrase: "Hujambo, dunia!" },
+      { language: "Amharic", phrase: "Selam, alem!" },
+      { language: "Tigrinya", phrase: "Selam, haftey!" },
+      { language: "Yoruba", phrase: "Pẹlẹ o, ayé!" },
+      { language: "Igbo", phrase: "Ndewo, ụwa!" },
+      { language: "Hausa", phrase: "Sannu, duniya!" },
+      { language: "Zulu", phrase: "Sawubona, mhlaba!" },
+      { language: "Xhosa", phrase: "Molo, hlabathi!" },
+      { language: "Sesotho", phrase: "Lumela, lefatše!" },
+      { language: "Setswana", phrase: "Dumela, lefatshe!" },
+      { language: "Shona", phrase: "Mhoro, nyika!" },
+      { language: "Kinyarwanda", phrase: "Muraho, isi!" },
+      { language: "Lingala", phrase: "Mbote, mokili!" },
+      { language: "Chichewa", phrase: "Moni, dziko lapansi!" },
+      { language: "Bemba", phrase: "Shani, ichalo!" },
+      { language: "Wolof", phrase: "Nanga def, addina!" },
+      { language: "Fula", phrase: "Jam tan, leydi!" },
+      { language: "Bambara", phrase: "I ni ce, doniya!" },
+      { language: "Mandinka", phrase: "Kaira, duniyaa!" },
+      { language: "Tamasheq", phrase: "Azul, tamaḍt!" },
+      { language: "Twi", phrase: "Agoo, wiase!" },
+      { language: "Ga", phrase: "Ojekoo, lɛ!" },
+      { language: "Ewe", phrase: "Woezɔ, dunia!" },
+      { language: "Berber (Kabyle)", phrase: "Azul, amekti!" },
+      { language: "Hindi", phrase: "नमस्ते, दुनिया!" },
+      { language: "Hindi (India)", phrase: "नमस्ते, दुनिया!" },
+      { language: "Hindi (Fiji)", phrase: "नमस्ते, दुनिया!" },
+      { language: "Hindi (Suriname)", phrase: "नमस्ते, दुनिया!" },
+      { language: "Hindi (Mauritius)", phrase: "नमस्ते, दुनिया!" },
+      { language: "Bengali", phrase: "ওহে বিশ্ব!" },
+      { language: "Bengali (Bangladesh)", phrase: "ওহে বিশ্ব!" },
+      { language: "Bengali (West Bengal)", phrase: "ওহে বিশ্ব!" },
+      { language: "Punjabi", phrase: "ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ, ਦੁਨਿਆ!" },
+      { language: "Punjabi (India)", phrase: "ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ, ਦੁਨਿਆ!" },
+      { language: "Punjabi (Pakistan)", phrase: "ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ, ਦੁਨਿਆ!" },
+      { language: "Gujarati", phrase: "નમસ્તે, વિશ્વ!" },
+      { language: "Marathi", phrase: "नमस्कार, जग!" },
+      { language: "Urdu", phrase: "ہیلو، دنیا!" },
+      { language: "Malayalam", phrase: "ഹലോ, ലോകമേ!" },
+      { language: "Tamil", phrase: "வணக்கம், உலகம்!" },
+      { language: "Tamil (Sri Lanka)", phrase: "வணக்கம், உலகம்!" },
+      { language: "Tamil (Malaysia)", phrase: "வணக்கம், உலகம்!" },
+      { language: "Tamil (Singapore)", phrase: "வணக்கம், உலகம்!" },
+      { language: "Telugu", phrase: "హలో, ప్రపంచం!" },
+      { language: "Kannada", phrase: "ಹಲೋ, ವಿಶ್ವವೆ!" },
+      { language: "Sinhalese", phrase: "හෙලෝ, ලෝකය!" },
+      { language: "Nepali", phrase: "नमस्ते, संसार!" },
+      { language: "Odia", phrase: "ନମସ୍କାର, ବିଶ୍ୱ!" },
+      { language: "Assamese", phrase: "নমস্কাৰ, বিশ্ব!" },
+      { language: "Bhojpuri", phrase: "प्रणाम, दुनिया!" },
+      { language: "Malay", phrase: "Helo, dunia!" },
+      { language: "Malay (Malaysia)", phrase: "Helo, dunia!" },
+      { language: "Malay (Brunei)", phrase: "Helo, dunia!" },
+      { language: "Malay (Singapore)", phrase: "Helo, dunia!" },
+      { language: "Indonesian", phrase: "Halo, dunia!" },
+      { language: "Indonesian (Jakarta)", phrase: "Halo, dunia!" },
+      { language: "Indonesian (Bali)", phrase: "Halo, dunia!" },
+      { language: "Indonesian (Sulawesi)", phrase: "Halo, dunia!" },
+      { language: "Indonesian (Papua)", phrase: "Halo, dunia!" },
+      { language: "Tagalog", phrase: "Kamusta, mundo!" },
+      { language: "Cebuano", phrase: "Kumusta, kalibutan!" },
+      { language: "Javanese", phrase: "Halo, donya!" },
+      { language: "Sundanese", phrase: "Halo, dunya!" },
+      { language: "Thai", phrase: "สวัสดี, โลก!" },
+      { language: "Lao", phrase: "ສະບາຍດີ, ໂລກ!" },
+      { language: "Vietnamese", phrase: "Xin chào, thế giới!" },
+      { language: "Khmer", phrase: "សួស្ដី ពិភពលោក!" },
+      { language: "Burmese", phrase: "ဟယ်လို ကမ္ဘာလောက!" },
+      { language: "Mandarin Chinese", phrase: "你好，世界！" },
+      { language: "Mandarin Chinese (Taiwan)", phrase: "你好，世界！" },
+      { language: "Mandarin Chinese (Singapore)", phrase: "你好，世界！" },
+      { language: "Mandarin Chinese (Malaysia)", phrase: "你好，世界！" },
+      { language: "Mandarin Chinese (Hong Kong)", phrase: "你好，世界！" },
+      { language: "Cantonese", phrase: "你好，世界！" },
+      { language: "Japanese", phrase: "こんにちは世界!" },
+      { language: "Japanese (Tokyo)", phrase: "こんにちは世界!" },
+      { language: "Japanese (Osaka)", phrase: "こんにちは世界!" },
+      { language: "Japanese (Hokkaido)", phrase: "こんにちは世界!" },
+      { language: "Korean", phrase: "안녕하세요 세계!" },
+      { language: "Korean (Seoul)", phrase: "안녕하세요 세계!" },
+      { language: "Korean (Busan)", phrase: "안녕하세요 세계!" },
+      { language: "Korean (Jeju)", phrase: "안녕하세요 세계!" },
+      { language: "Mongolian", phrase: "Сайн байна уу, дэлхий!" },
+      { language: "Tibetan", phrase: "བཀྲ་ཤིས་བདེ་ལེགས་འཁོད་འཇུག!" },
+      { language: "Dzongkha", phrase: "བཀྲ་ཤིས་བདེ་ལགས་ ཞབས་བརྟན!" },
+      { language: "Maori", phrase: "Kia ora, ao!" },
+      { language: "Samoan", phrase: "Talofa, lalolagi!" },
+      { language: "Tongan", phrase: "Mālō e lelei, māmani!" },
+      { language: "Fijian", phrase: "Bula, vuravura!" },
+      { language: "Hawaiian", phrase: "Aloha, honua!" },
+      { language: "Chamorro", phrase: "Håfa adai, tåno'!" },
+      { language: "Marshallese", phrase: "Iọkwe eok, wūnṃaan!" },
+      { language: "Tok Pisin", phrase: "Gude, graun!" },
+      { language: "Bislama", phrase: "Halo, wol!" },
+      { language: "Tetum", phrase: "Olá, mundo!" },
+      { language: "Mapudungun", phrase: "Mari mari, mapu!" },
+      { language: "Quechua", phrase: "Rimaykullayki, pacha!" },
+      { language: "Aymara", phrase: "Kamisaraki, uraqi!" },
+      { language: "Guarani", phrase: "Maitei, yvy!" },
+      { language: "Haitian Creole", phrase: "Bonjou, mond!" },
+      { language: "Lakota", phrase: "Hau, makȟóče!" },
+      { language: "Cherokee", phrase: "ᎣᏏᏲ, ᎡᎶᎯ!" },
+      { language: "Navajo", phrase: "Yáʼátʼééh, nihimá!" },
+      { language: "Inuktitut", phrase: "ᐊᒐᓇ, ᐃᓄᒃ!" },
+    ];
+    const randomizeButton = document.getElementById("randomize");
+    const resetButton = document.getElementById("reset");
+    const greetingCount = document.getElementById("greeting-count");
+    const searchForm = document.getElementById("search-form");
+    const searchInput = document.getElementById("search-input");
+
+    const formatGreeting = (entry) => `${entry.phrase} — ${entry.language}`;
+    const defaultGreeting = formatGreeting(greetings[0]);
+
+    greetingCount.textContent = greetings.length;
+    hello.textContent = defaultGreeting;
 
     // Desktop Hover
     hello.addEventListener("mouseenter", () => {
@@ -155,6 +580,32 @@
         hello.classList.remove("active");
         flash.classList.remove("active");
       }, 800);
+    });
+
+    randomizeButton.addEventListener("click", () => {
+      const current = hello.textContent;
+      let nextGreeting = current;
+      while (nextGreeting === current) {
+        const entry = greetings[Math.floor(Math.random() * greetings.length)];
+        nextGreeting = formatGreeting(entry);
+      }
+      hello.textContent = nextGreeting;
+      hello.classList.add("active");
+      setTimeout(() => hello.classList.remove("active"), 700);
+    });
+
+    resetButton.addEventListener("click", () => {
+      hello.textContent = defaultGreeting;
+      hello.classList.add("active");
+      setTimeout(() => hello.classList.remove("active"), 700);
+    });
+
+    searchForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const query = searchInput.value.trim();
+      if (!query) return;
+      const url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+      window.open(url, "_blank", "noopener");
     });
   </script>
 </body>

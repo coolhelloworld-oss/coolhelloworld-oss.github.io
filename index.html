@@ -1459,11 +1459,17 @@
       const toText = () => {
         const parts = input.value.trim().split(/\s+/).filter(Boolean);
         try {
-          const chars = parts.map((p) => String.fromCharCode(parseInt(p, 2)));
-          if (chars.some((c) => Number.isNaN(c.charCodeAt?.(0)))) throw new Error("Ungültige Bits");
+          const codes = parts.map((p) => {
+            if (!/^[01]+$/.test(p)) throw new Error("Nur 0 und 1 erlaubt");
+            const parsed = parseInt(p, 2);
+            if (Number.isNaN(parsed)) throw new Error("Ungültige Bits");
+            return parsed;
+          });
+          const chars = codes.map((code) => String.fromCharCode(code));
           output.value = chars.join("");
           status.textContent = "✅ In Text gewandelt";
         } catch (error) {
+          output.value = "";
           status.textContent = `❌ Fehler: ${error.message}`;
         }
       };
@@ -1518,6 +1524,14 @@
           result.textContent = "";
         }
       };
+
+      input.addEventListener("input", evaluate);
+      input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          evaluate();
+        }
+      });
 
       const keypad = document.createElement("div");
       keypad.className = "inline-actions";
@@ -2185,6 +2199,241 @@
       return wrapper;
     };
 
+    const renderLoanCalculator = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+      const amount = document.createElement("input");
+      amount.type = "number";
+      amount.min = "0";
+      amount.value = 10000;
+      const rate = document.createElement("input");
+      rate.type = "number";
+      rate.step = "0.01";
+      rate.value = 4.5;
+      const years = document.createElement("input");
+      years.type = "number";
+      years.min = "1";
+      years.value = 5;
+
+      const summary = document.createElement("div");
+      summary.className = "output";
+
+      const compute = () => {
+        const principal = Number(amount.value) || 0;
+        const annualRate = (Number(rate.value) || 0) / 100;
+        const months = (Number(years.value) || 0) * 12;
+        if (!months) { summary.textContent = "Bitte Laufzeit > 0 wählen"; return; }
+        const monthlyRate = annualRate / 12;
+        let monthlyPayment = principal / months;
+        if (monthlyRate > 0) {
+          const pow = (1 + monthlyRate) ** months;
+          monthlyPayment = (principal * monthlyRate * pow) / (pow - 1);
+        }
+        const totalPaid = monthlyPayment * months;
+        const totalInterest = totalPaid - principal;
+        summary.textContent = `Rate: ${monthlyPayment.toFixed(2)} € / Monat | Zinsen gesamt: ${totalInterest.toFixed(2)} € | Gesamtbetrag: ${totalPaid.toFixed(2)} €`;
+      };
+
+      [amount, rate, years].forEach((el) => el.addEventListener("input", compute));
+      compute();
+
+      const row = document.createElement("div");
+      row.className = "row";
+      row.append(
+        (() => { const l = document.createElement("label"); l.textContent = "Betrag"; l.appendChild(amount); return l; })(),
+        (() => { const l = document.createElement("label"); l.textContent = "Zins %"; l.appendChild(rate); return l; })(),
+        (() => { const l = document.createElement("label"); l.textContent = "Jahre"; l.appendChild(years); return l; })(),
+      );
+
+      wrapper.append(row, summary);
+      return wrapper;
+    };
+
+    const renderCountdownTimer = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+      const minutes = document.createElement("input");
+      minutes.type = "number";
+      minutes.min = "0";
+      minutes.value = 0;
+      const seconds = document.createElement("input");
+      seconds.type = "number";
+      seconds.min = "0";
+      seconds.max = "59";
+      seconds.value = 30;
+      const display = document.createElement("div");
+      display.className = "output";
+      let remainingMs = 30000;
+      let timer;
+      let running = false;
+
+      const format = (ms) => {
+        const totalSeconds = Math.max(0, Math.round(ms / 100) / 10);
+        const mins = Math.floor(totalSeconds / 60);
+        const secs = Math.floor(totalSeconds % 60);
+        const tenths = Math.round((totalSeconds - Math.floor(totalSeconds)) * 10);
+        return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}.${tenths}`;
+      };
+
+      const renderTime = () => { display.textContent = format(remainingMs); };
+
+      const tick = () => {
+        remainingMs -= 100;
+        renderTime();
+        if (remainingMs <= 0) { stop(); remainingMs = 0; renderTime(); }
+      };
+
+      const stop = () => {
+        running = false;
+        clearInterval(timer);
+      };
+
+      const start = () => {
+        if (running) return;
+        running = true;
+        clearInterval(timer);
+        timer = setInterval(tick, 100);
+      };
+
+      const reset = () => {
+        stop();
+        const mins = Math.max(0, Number(minutes.value) || 0);
+        const secs = Math.max(0, Math.min(59, Number(seconds.value) || 0));
+        remainingMs = (mins * 60 + secs) * 1000;
+        renderTime();
+      };
+
+      [minutes, seconds].forEach((el) => el.addEventListener("input", reset));
+
+      const actions = document.createElement("div");
+      actions.className = "inline-actions";
+      actions.append(createButton("Start", start), createButton("Pause", stop), createButton("Reset", reset));
+
+      const row = document.createElement("div");
+      row.className = "row";
+      row.append(
+        (() => { const l = document.createElement("label"); l.textContent = "Minuten"; l.appendChild(minutes); return l; })(),
+        (() => { const l = document.createElement("label"); l.textContent = "Sekunden"; l.appendChild(seconds); return l; })(),
+      );
+
+      renderTime();
+      wrapper.append(row, display, actions);
+      return wrapper;
+    };
+
+    const renderUuidGenerator = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+      const output = document.createElement("textarea");
+      output.readOnly = true;
+      const history = document.createElement("div");
+      history.className = "output";
+      history.textContent = "Noch keine UUID erzeugt";
+
+      const fallbackUuid = () => {
+        const bytes = crypto.getRandomValues(new Uint8Array(16));
+        bytes[6] = (bytes[6] & 0x0f) | 0x40;
+        bytes[8] = (bytes[8] & 0x3f) | 0x80;
+        const toHex = (n) => n.toString(16).padStart(2, "0");
+        return `${toHex(bytes[0])}${toHex(bytes[1])}${toHex(bytes[2])}${toHex(bytes[3])}-${toHex(bytes[4])}${toHex(bytes[5])}-${toHex(bytes[6])}${toHex(bytes[7])}-${toHex(bytes[8])}${toHex(bytes[9])}-${Array.from(bytes.slice(10)).map(toHex).join("")}`;
+      };
+
+      const generate = () => {
+        const uuid = crypto.randomUUID ? crypto.randomUUID() : fallbackUuid();
+        output.value = uuid;
+        const previous = history.textContent === "Noch keine UUID erzeugt" ? [] : history.textContent.split("\n");
+        const lines = [uuid, ...previous].slice(0, 5);
+        history.textContent = lines.join("\n");
+      };
+
+      const actions = document.createElement("div");
+      actions.className = "inline-actions";
+      actions.append(
+        createButton("Neue UUID", generate),
+        createButton("Kopieren", () => copyText(output.value)),
+        createButton("Leeren", () => { output.value = ""; history.textContent = "Noch keine UUID erzeugt"; })
+      );
+
+      const label = document.createElement("label");
+      label.textContent = "UUID";
+      label.appendChild(output);
+
+      wrapper.append(label, actions, history);
+      return wrapper;
+    };
+
+    const renderRomanConverter = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+      const arabic = document.createElement("input");
+      arabic.type = "number";
+      arabic.min = "1";
+      arabic.max = "3999";
+      arabic.value = 2024;
+      const roman = document.createElement("input");
+      roman.placeholder = "MMXXIV";
+
+      const rules = [
+        [1000, "M"], [900, "CM"], [500, "D"], [400, "CD"], [100, "C"], [90, "XC"], [50, "L"], [40, "XL"], [10, "X"],
+        [9, "IX"], [5, "V"], [4, "IV"], [1, "I"],
+      ];
+
+      const toRoman = (num) => {
+        let n = num;
+        let result = "";
+        for (const [value, symbol] of rules) {
+          while (n >= value) { result += symbol; n -= value; }
+        }
+        return result;
+      };
+
+      const fromRoman = (value) => {
+        const upper = value.toUpperCase();
+        const valid = /^(M{0,3})(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$/;
+        if (!valid.test(upper)) throw new Error("Ungültige römische Zahl");
+        let index = 0;
+        let total = 0;
+        for (const [value, symbol] of rules) {
+          while (upper.startsWith(symbol, index)) {
+            total += value;
+            index += symbol.length;
+          }
+        }
+        return total;
+      };
+
+      const syncFromArabic = () => {
+        const value = Number(arabic.value);
+        if (value >= 1 && value <= 3999) {
+          roman.value = toRoman(value);
+        }
+      };
+
+      const syncFromRoman = () => {
+        if (!roman.value.trim()) return;
+        try {
+          const value = fromRoman(roman.value.trim());
+          arabic.value = value;
+        } catch (error) {
+          arabic.value = "";
+        }
+      };
+
+      arabic.addEventListener("input", syncFromArabic);
+      roman.addEventListener("input", syncFromRoman);
+      syncFromArabic();
+
+      const row = document.createElement("div");
+      row.className = "row";
+      row.append(
+        (() => { const l = document.createElement("label"); l.textContent = "Arabisch"; l.appendChild(arabic); return l; })(),
+        (() => { const l = document.createElement("label"); l.textContent = "Römisch"; l.appendChild(roman); return l; })(),
+      );
+
+      wrapper.append(row);
+      return wrapper;
+    };
+
     const tools = [
       { name: "JSON Formatter", category: "Entwicklung", description: "Formatiert JSON und zeigt Fehler klar an.", render: renderJsonFormatter },
       { name: "Einheiten-Converter", category: "Analyse", description: "Länge, Gewicht und Temperatur konvertieren.", render: renderUnitConverter },
@@ -2195,6 +2444,7 @@
       { name: "Binär Coder", category: "Entwicklung", description: "Text und Bits sicher umwandeln.", render: renderBinaryCoder },
       { name: "Taschenrechner", category: "Analyse", description: "Ausdrücke mit Operatoren und Potenzen lösen.", render: renderCalculator },
       { name: "Währungsrechner", category: "Produktivität", description: "Beträge in wichtige Währungen spiegeln.", render: renderCurrencyConverter },
+      { name: "Kreditrechner", category: "Analyse", description: "Monatsrate, Zinsen und Gesamtbetrag kalkulieren.", render: renderLoanCalculator },
       { name: "Farb-Analysator", category: "Kreativ", description: "HEX, RGB und HSL auf einen Blick.", render: renderColorAnalyzer },
       { name: "Passwort Generator", category: "Produktivität", description: "Starke Passwörter mit Optionen bauen.", render: renderPasswordGenerator },
       { name: "Wortzähler", category: "Produktivität", description: "Wörter, Sätze und Zeilen zählen.", render: renderWordCounter },
@@ -2204,48 +2454,84 @@
       { name: "Diff Checker", category: "Entwicklung", description: "Zeilenweise Unterschiede aufdecken.", render: renderDiffChecker },
       { name: "BMI Rechner", category: "Analyse", description: "BMI inkl. Klassifikation berechnen.", render: renderBmi },
       { name: "Datums-Differenz", category: "Analyse", description: "Tage und Wochen zwischen zwei Daten.", render: renderDateDiff },
+      { name: "Countdown Timer", category: "Spaß", description: "Runterzählen, pausieren und neu starten.", render: renderCountdownTimer },
       { name: "Stoppuhr", category: "Spaß", description: "Messbare Zeit mit Start/Stop.", render: renderStopwatch },
       { name: "CSV Viewer", category: "Entwicklung", description: "CSV schnell als Tabelle prüfen.", render: renderCsvViewer },
       { name: "Zahlen-Analyzer", category: "Analyse", description: "Min, Max, Mittel und Median finden.", render: renderNumberAnalyzer },
       { name: "Markdown Checklist", category: "Produktivität", description: "Checkboxen aus Markdown prüfen.", render: renderMarkdownChecklist },
+      { name: "UUID Generator", category: "Entwicklung", description: "Schnell neue UUIDs erzeugen und kopieren.", render: renderUuidGenerator },
+      { name: "Römisch-Konverter", category: "Produktivität", description: "Zahlen zwischen arabisch und römisch umwandeln.", render: renderRomanConverter },
     ];
+    let activeTool = null;
+
+    const openTool = (tool) => {
+      activeTool = tool;
+      toolPreviewTitle.textContent = tool.name;
+      toolPreviewDesc.textContent = tool.description;
+      toolWorkspace.innerHTML = "";
+      toolWorkspace.appendChild(tool.render());
+    };
+
+    const toolCards = tools.map((tool) => {
+      const card = document.createElement("article");
+      card.className = "tool-card";
+      card.setAttribute("role", "listitem");
+      card.dataset.search = `${tool.name} ${tool.category} ${tool.description}`.toLowerCase();
+      card.dataset.category = tool.category;
+      card.innerHTML = `
+        <div class="tool-meta">
+          <span>🔧 ${tool.category}</span>
+          <span aria-label="Favorit">★</span>
+        </div>
+        <h3>${tool.name}</h3>
+        <p>${tool.description}</p>
+      `;
+      const startButton = createButton("Tool öffnen", () => openTool(tool));
+      card.appendChild(startButton);
+      return { tool, card };
+    });
+
+    const fragment = document.createDocumentFragment();
+    toolCards.forEach(({ card }) => fragment.appendChild(card));
+    toolGrid.appendChild(fragment);
 
     const renderTools = () => {
       const query = toolSearch.value.trim().toLowerCase();
       const category = toolFilter.value;
-      toolGrid.innerHTML = "";
+      let visibleCount = 0;
 
-      const filtered = tools.filter((tool) => {
+      toolCards.forEach(({ tool, card }) => {
         const matchesCategory = category === "all" || tool.category === category;
-        const matchesQuery =
-          !query ||
-          tool.name.toLowerCase().includes(query) ||
-          tool.category.toLowerCase().includes(query) ||
-          tool.description.toLowerCase().includes(query);
-        return matchesCategory && matchesQuery;
-      });
-
-      filtered.forEach((tool) => {
-        const card = document.createElement("article");
-        card.className = "tool-card";
-        card.setAttribute("role", "listitem");
-        card.innerHTML = `
-          <div class="tool-meta">
-            <span>🔧 ${tool.category}</span>
-            <span aria-label="Favorit">★</span>
-          </div>
-          <h3>${tool.name}</h3>
-          <p>${tool.description}</p>
-        `;
-        const startButton = createButton("Tool öffnen", () => openTool(tool));
-        card.appendChild(startButton);
-        toolGrid.appendChild(card);
+        const matchesQuery = !query || card.dataset.search.includes(query);
+        const visible = matchesCategory && matchesQuery;
+        card.style.display = visible ? "" : "none";
+        if (visible) visibleCount += 1;
       });
 
       toolCount.textContent = `${tools.length}`;
-      toolboxTag.textContent = filtered.length === tools.length
+      toolboxTag.textContent = visibleCount === tools.length
         ? "✨ Alle Tools bereit"
-        : `🔍 ${filtered.length} Treffer`;
+        : visibleCount === 0
+          ? "0 Treffer"
+          : `🔍 ${visibleCount} Treffer`;
+
+      if (visibleCount === 0) {
+        activeTool = null;
+        toolPreviewTitle.textContent = "Kein Tool gefunden";
+        toolPreviewDesc.textContent = "Passe Suche oder Filter an, um ein Tool zu sehen.";
+        toolWorkspace.innerHTML = "";
+        const empty = document.createElement("div");
+        empty.className = "tool-preview";
+        empty.textContent = "Keine Tools erfüllen die Filter.";
+        toolWorkspace.appendChild(empty);
+        return;
+      }
+
+      const activeVisible = toolCards.some(({ tool, card }) => tool === activeTool && card.style.display !== "none");
+      if (!activeTool || !activeVisible) {
+        const next = toolCards.find(({ card }) => card.style.display !== "none");
+        if (next) openTool(next.tool);
+      }
     };
 
     let renderScheduled = false;
@@ -2256,13 +2542,6 @@
         renderScheduled = false;
         renderTools();
       });
-    };
-
-    const openTool = (tool) => {
-      toolPreviewTitle.textContent = tool.name;
-      toolPreviewDesc.textContent = tool.description;
-      toolWorkspace.innerHTML = "";
-      toolWorkspace.appendChild(tool.render());
     };
 
     toolSearch.addEventListener("input", scheduleRenderTools);

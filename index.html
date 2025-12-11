@@ -359,6 +359,122 @@
       gap: 6px;
     }
 
+    .tool-preview {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    .tool-preview h3 {
+      margin: 0;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      letter-spacing: 0.4px;
+    }
+
+    .tool-preview p {
+      margin: 0;
+      color: #d6d9e0;
+      line-height: 1.5;
+    }
+
+    .tool-preview label {
+      display: grid;
+      gap: 6px;
+      color: #e9ecf2;
+      font-weight: 600;
+    }
+
+    .tool-preview input,
+    .tool-preview textarea,
+    .tool-preview select {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      color: #fff;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 1rem;
+    }
+
+    .tool-preview textarea {
+      min-height: 140px;
+      resize: vertical;
+    }
+
+    .tool-preview .row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+    }
+
+    .tool-preview .output {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      min-height: 48px;
+      word-break: break-word;
+      font-family: 'Poppins', 'Fira Code', monospace;
+    }
+
+    .tool-preview table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    }
+
+    .tool-preview table th,
+    .tool-preview table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .tool-preview table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .tool-preview .gradient-box {
+      height: 140px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 10px;
+      width: fit-content;
+      letter-spacing: 0.3px;
+    }
+
+    .inline-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .muted {
+      color: #cfd5e3;
+      font-size: 0.95rem;
+    }
+
     @media (max-width: 960px) {
       .glass-card {
         padding: 40px 28px 32px;
@@ -495,7 +611,7 @@
             <span>Schimmernde Laune</span>
           </div>
           <div class="stat">
-            <strong id="tool-count">50+</strong>
+            <strong id="tool-count">0</strong>
             <span>Werkzeuge in der Toolbox</span>
           </div>
         </div>
@@ -505,8 +621,8 @@
             <div class="tag" id="toolbox-tag">✨ Toolbox geladen</div>
             <h2>Multitool-Werkstatt</h2>
             <p class="subtitle">
-              Über 50 praktische Mini-Tools für jeden Tag: Von Kreativität und Produktivität bis zu
-              Entwicklerspielplätzen. Filtern oder suchen, um blitzschnell das passende Werkzeug zu finden.
+              Funktionierende Mini-Tools für Alltag, Code und Kreativität. Filtern oder suchen, starte dann ein
+              Tool und arbeite direkt im Browser weiter. Jedes Tool arbeitet live im Browser – ohne Server.
             </p>
             <div class="tool-controls">
               <input
@@ -526,6 +642,11 @@
             </div>
           </div>
           <div id="tool-grid" class="tools-grid" role="list"></div>
+          <div class="tool-preview" id="tool-preview">
+            <h3><span aria-hidden="true">🧰</span><span id="tool-preview-title">Tool auswählen</span></h3>
+            <p id="tool-preview-desc" class="muted">Wähle ein Tool aus der Liste, um es hier zu öffnen.</p>
+            <div id="tool-workspace" aria-live="polite"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -839,67 +960,459 @@
       window.open(url, "_blank", "noopener");
     });
 
+    const toolWorkspace = document.getElementById("tool-workspace");
+    const toolPreviewTitle = document.getElementById("tool-preview-title");
+    const toolPreviewDesc = document.getElementById("tool-preview-desc");
+
+    const createButton = (label, onClick) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = label;
+      button.addEventListener("click", onClick);
+      return button;
+    };
+
+    const copyText = (text) => navigator.clipboard?.writeText(text || "");
+
+    const renderJsonFormatter = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+
+      const input = document.createElement("textarea");
+      input.placeholder = '{"message":"Gib JSON ein"}';
+      input.value = '{"hello":"world","zahlen":[1,2,3]}';
+      const output = document.createElement("pre");
+      output.className = "output";
+      const status = document.createElement("div");
+      status.className = "badge";
+      status.textContent = "Wartet auf Eingabe";
+
+      const format = () => {
+        try {
+          const parsed = JSON.parse(input.value);
+          const formatted = JSON.stringify(parsed, null, 2);
+          output.textContent = formatted;
+          status.textContent = "✅ Erfolgreich formatiert";
+        } catch (error) {
+          output.textContent = "";
+          status.textContent = `❌ Fehler: ${error.message}`;
+        }
+      };
+
+      const copy = () => {
+        copyText(output.textContent || "");
+        status.textContent = "📋 In Zwischenablage kopiert";
+      };
+
+      const buttons = document.createElement("div");
+      buttons.className = "inline-actions";
+      buttons.append(
+        createButton("Formatieren", format),
+        createButton("Kopieren", copy),
+        createButton("Zurücksetzen", () => {
+          input.value = "";
+          output.textContent = "";
+          status.textContent = "Wartet auf Eingabe";
+        })
+      );
+
+      const labelInput = document.createElement("label");
+      labelInput.textContent = "Roh-JSON";
+      labelInput.appendChild(input);
+
+      const labelOutput = document.createElement("label");
+      labelOutput.textContent = "Resultat";
+      labelOutput.appendChild(output);
+
+      wrapper.append(status, labelInput, labelOutput, buttons);
+      format();
+      return wrapper;
+    };
+
+    const renderUnitConverter = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+
+      const groups = {
+        length: {
+          label: "Länge",
+          units: {
+            m: { label: "Meter", toBase: (v) => v, fromBase: (v) => v },
+            km: { label: "Kilometer", toBase: (v) => v * 1000, fromBase: (v) => v / 1000 },
+            mi: { label: "Meile", toBase: (v) => v * 1609.34, fromBase: (v) => v / 1609.34 },
+            ft: { label: "Fuß", toBase: (v) => v * 0.3048, fromBase: (v) => v / 0.3048 },
+          },
+        },
+        weight: {
+          label: "Gewicht",
+          units: {
+            g: { label: "Gramm", toBase: (v) => v, fromBase: (v) => v },
+            kg: { label: "Kilogramm", toBase: (v) => v * 1000, fromBase: (v) => v / 1000 },
+            lb: { label: "Pfund", toBase: (v) => v * 453.592, fromBase: (v) => v / 453.592 },
+            oz: { label: "Unze", toBase: (v) => v * 28.3495, fromBase: (v) => v / 28.3495 },
+          },
+        },
+        temperature: {
+          label: "Temperatur",
+          units: {
+            C: {
+              label: "°C",
+              toBase: (v) => v,
+              fromBase: (v) => v,
+            },
+            F: {
+              label: "°F",
+              toBase: (v) => (v - 32) * (5 / 9),
+              fromBase: (v) => v * (9 / 5) + 32,
+            },
+            K: {
+              label: "K",
+              toBase: (v) => v - 273.15,
+              fromBase: (v) => v + 273.15,
+            },
+          },
+        },
+      };
+
+      const typeSelect = document.createElement("select");
+      Object.entries(groups).forEach(([value, meta]) => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = meta.label;
+        typeSelect.appendChild(option);
+      });
+
+      const valueInput = document.createElement("input");
+      valueInput.type = "number";
+      valueInput.value = "1";
+
+      const fromSelect = document.createElement("select");
+      const toSelect = document.createElement("select");
+
+      const output = document.createElement("div");
+      output.className = "output";
+
+      const populateUnits = () => {
+        const selectedGroup = groups[typeSelect.value];
+        fromSelect.innerHTML = "";
+        toSelect.innerHTML = "";
+        Object.entries(selectedGroup.units).forEach(([value, meta]) => {
+          const optionFrom = document.createElement("option");
+          optionFrom.value = value;
+          optionFrom.textContent = meta.label;
+          const optionTo = optionFrom.cloneNode(true);
+          fromSelect.appendChild(optionFrom);
+          toSelect.appendChild(optionTo);
+        });
+        toSelect.selectedIndex = Math.min(1, toSelect.options.length - 1);
+      };
+
+      const convert = () => {
+        const raw = Number(valueInput.value);
+        if (Number.isNaN(raw)) {
+          output.textContent = "Bitte Zahl eingeben";
+          return;
+        }
+        const selectedGroup = groups[typeSelect.value];
+        const from = selectedGroup.units[fromSelect.value];
+        const to = selectedGroup.units[toSelect.value];
+        const baseValue = from.toBase(raw);
+        const result = to.fromBase(baseValue);
+        output.textContent = `${raw} ${from.label} ≈ ${result.toFixed(4)} ${to.label}`;
+      };
+
+      [valueInput, fromSelect, toSelect, typeSelect].forEach((el) => el.addEventListener("input", convert));
+      typeSelect.addEventListener("change", () => {
+        populateUnits();
+        convert();
+      });
+
+      populateUnits();
+      convert();
+
+      const typeRow = document.createElement("div");
+      typeRow.className = "row";
+      typeRow.append(
+        (() => { const l = document.createElement("label"); l.textContent = "Messbereich"; l.appendChild(typeSelect); return l; })()
+      );
+
+      const inputsRow = document.createElement("div");
+      inputsRow.className = "row";
+      inputsRow.append(
+        (() => { const l = document.createElement("label"); l.textContent = "Wert"; l.appendChild(valueInput); return l; })(),
+        (() => { const l = document.createElement("label"); l.textContent = "Von"; l.appendChild(fromSelect); return l; })(),
+        (() => { const l = document.createElement("label"); l.textContent = "Nach"; l.appendChild(toSelect); return l; })()
+      );
+
+      const labelOutput = document.createElement("label");
+      labelOutput.textContent = "Ergebnis";
+      labelOutput.appendChild(output);
+
+      wrapper.append(typeRow, inputsRow, labelOutput);
+      return wrapper;
+    };
+
+    const renderGradientCrafter = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+
+      const startColor = document.createElement("input");
+      startColor.type = "color";
+      startColor.value = "#ff00cc";
+      const endColor = document.createElement("input");
+      endColor.type = "color";
+      endColor.value = "#00ffee";
+      const angle = document.createElement("input");
+      angle.type = "range";
+      angle.min = "0";
+      angle.max = "360";
+      angle.value = "120";
+
+      const preview = document.createElement("div");
+      preview.className = "gradient-box";
+
+      const cssCode = document.createElement("textarea");
+      cssCode.readOnly = true;
+
+      const updateGradient = () => {
+        const css = `linear-gradient(${angle.value}deg, ${startColor.value}, ${endColor.value})`;
+        preview.style.background = css;
+        cssCode.value = `background: ${css};`;
+      };
+
+      [startColor, endColor, angle].forEach((el) => el.addEventListener("input", updateGradient));
+      updateGradient();
+
+      const copyButton = createButton("CSS kopieren", () => {
+        copyText(cssCode.value || "");
+      });
+
+      const controlsRow = document.createElement("div");
+      controlsRow.className = "row";
+      controlsRow.append(
+        (() => { const l = document.createElement("label"); l.textContent = "Startfarbe"; l.appendChild(startColor); return l; })(),
+        (() => { const l = document.createElement("label"); l.textContent = "Endfarbe"; l.appendChild(endColor); return l; })(),
+        (() => { const l = document.createElement("label"); l.textContent = `Winkel (${angle.value}°)`; angle.addEventListener("input", () => l.textContent = `Winkel (${angle.value}°)`); l.appendChild(angle); return l; })()
+      );
+
+      const labelPreview = document.createElement("label");
+      labelPreview.textContent = "Vorschau";
+      labelPreview.appendChild(preview);
+
+      const labelCode = document.createElement("label");
+      labelCode.textContent = "CSS";
+      labelCode.appendChild(cssCode);
+
+      wrapper.append(controlsRow, labelPreview, labelCode, copyButton);
+      return wrapper;
+    };
+
+    const markdownToHtml = (text) => {
+      const escape = (str) => str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const formatInline = (str) =>
+        str
+          .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+          .replace(/\*(.*?)\*/g, "<em>$1</em>")
+          .replace(/`(.*?)`/g, "<code>$1</code>");
+
+      const lines = text.split(/\r?\n/);
+      let html = "";
+      let inList = false;
+
+      lines.forEach((line) => {
+        if (line.startsWith("## ")) {
+          html += `<h3>${formatInline(escape(line.slice(3)))}</h3>`;
+          inList = false;
+          return;
+        }
+        if (line.startsWith("# ")) {
+          html += `<h2>${formatInline(escape(line.slice(2)))}</h2>`;
+          inList = false;
+          return;
+        }
+        if (line.startsWith("- ")) {
+          if (!inList) {
+            html += "<ul>";
+            inList = true;
+          }
+          html += `<li>${formatInline(escape(line.slice(2)))}</li>`;
+          return;
+        }
+        if (line.trim() === "") {
+          if (inList) {
+            html += "</ul>";
+            inList = false;
+          }
+          return;
+        }
+        if (inList) {
+          html += "</ul>";
+          inList = false;
+        }
+        html += `<p>${formatInline(escape(line))}</p>`;
+      });
+
+      if (inList) html += "</ul>";
+      return html || "<p class='muted'>Keine Vorschau vorhanden</p>";
+    };
+
+    const renderMarkdownPreviewer = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+
+      const input = document.createElement("textarea");
+      input.placeholder = "# Überschrift\n- Punkt eins\n- Punkt zwei";
+      input.value = "# Markdown Live\n- Schreibe links\n- Vorschau rechts\n**Fett** und *kursiv* gehen auch.";
+      const output = document.createElement("div");
+      output.className = "output";
+      output.style.minHeight = "120px";
+
+      const render = () => {
+        output.innerHTML = markdownToHtml(input.value);
+      };
+
+      input.addEventListener("input", render);
+      render();
+
+      const actions = document.createElement("div");
+      actions.className = "inline-actions";
+      actions.append(
+        createButton("Kopieren", () => copyText(input.value)),
+        createButton("Vorschau kopieren", () => copyText(output.innerText))
+      );
+
+      const row = document.createElement("div");
+      row.className = "row";
+      row.append(
+        (() => { const l = document.createElement("label"); l.textContent = "Markdown"; l.appendChild(input); return l; })(),
+        (() => { const l = document.createElement("label"); l.textContent = "Vorschau"; l.appendChild(output); return l; })()
+      );
+
+      wrapper.append(row, actions);
+      return wrapper;
+    };
+
+    const renderBase64Tool = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+      const input = document.createElement("textarea");
+      input.placeholder = "Text hier eingeben";
+      const output = document.createElement("textarea");
+      output.readOnly = true;
+
+      const encode = () => {
+        try {
+          output.value = btoa(unescape(encodeURIComponent(input.value)));
+        } catch (error) {
+          output.value = `Fehler: ${error.message}`;
+        }
+      };
+
+      const decode = () => {
+        try {
+          output.value = decodeURIComponent(escape(atob(input.value)));
+        } catch (error) {
+          output.value = `Fehler: ${error.message}`;
+        }
+      };
+
+      const actions = document.createElement("div");
+      actions.className = "inline-actions";
+      actions.append(
+        createButton("Base64 encodieren", encode),
+        createButton("Base64 decodieren", decode),
+        createButton("Ausgabe kopieren", () => copyText(output.value))
+      );
+
+      const row = document.createElement("div");
+      row.className = "row";
+      row.append(
+        (() => { const l = document.createElement("label"); l.textContent = "Eingabe"; l.appendChild(input); return l; })(),
+        (() => { const l = document.createElement("label"); l.textContent = "Ausgabe"; l.appendChild(output); return l; })()
+      );
+
+      wrapper.append(row, actions);
+      return wrapper;
+    };
+
+    const renderTimezonePlanner = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+      const now = new Date();
+      const localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+      const timeInput = document.createElement("input");
+      timeInput.type = "datetime-local";
+      timeInput.value = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
+      const baseSelect = document.createElement("select");
+      [localTimezone, "UTC", "Europe/Berlin", "America/New_York", "Asia/Tokyo", "Australia/Sydney"].forEach((zone) => {
+        const option = document.createElement("option");
+        option.value = zone;
+        option.textContent = zone;
+        baseSelect.appendChild(option);
+      });
+      baseSelect.value = localTimezone;
+
+      const targets = ["UTC", "Europe/Berlin", "America/New_York", "Asia/Tokyo", "Asia/Kolkata", "Australia/Sydney"];
+
+      const table = document.createElement("table");
+      const thead = document.createElement("thead");
+      thead.innerHTML = "<tr><th>Zone</th><th>Zeit</th></tr>";
+      table.appendChild(thead);
+      const tbody = document.createElement("tbody");
+      table.appendChild(tbody);
+
+      const getOffsetMinutes = (date, timeZone) => {
+        const localeDate = new Date(date.toLocaleString("en-US", { timeZone }));
+        return (localeDate.getTime() - date.getTime()) / 60000;
+      };
+
+      const renderRows = () => {
+        tbody.innerHTML = "";
+        const localDate = new Date(timeInput.value);
+        if (Number.isNaN(localDate.getTime())) return;
+        const offsetDifference = getOffsetMinutes(localDate, baseSelect.value);
+        const baseDate = new Date(localDate.getTime() - offsetDifference * 60000);
+        targets.forEach((zone) => {
+          const row = document.createElement("tr");
+          const dateTime = new Intl.DateTimeFormat("de-DE", {
+            hour: "2-digit",
+            minute: "2-digit",
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            timeZone: zone,
+          }).format(baseDate);
+          const label = zone === baseSelect.value ? `${zone} (Basis)` : zone;
+          row.innerHTML = `<td>${label}</td><td>${dateTime}</td>`;
+          tbody.appendChild(row);
+        });
+      };
+
+      timeInput.addEventListener("input", renderRows);
+      baseSelect.addEventListener("change", renderRows);
+
+      renderRows();
+
+      const row = document.createElement("div");
+      row.className = "row";
+      row.append(
+        (() => { const l = document.createElement("label"); l.textContent = "Basiszeit"; l.appendChild(timeInput); return l; })(),
+        (() => { const l = document.createElement("label"); l.textContent = "Zeitzone"; l.appendChild(baseSelect); return l; })()
+      );
+
+      wrapper.append(row, table);
+      return wrapper;
+    };
+
     const tools = [
-      { name: "AI Prompt Planner", category: "Produktivität", description: "Strukturiert Prompts und speichert Varianten." },
-      { name: "Color Harmony Mixer", category: "Kreativ", description: "Generiert harmonische Paletten aus einer Basisfarbe." },
-      { name: "Gradient Crafter", category: "Kreativ", description: "Erstellt nahtlose CSS-Verläufe mit Exportfunktion." },
-      { name: "Icon Sketchpad", category: "Kreativ", description: "Zeichnet einfache Vektor-Icons im Browser." },
-      { name: "Pixel Grid", category: "Kreativ", description: "Kleines Pixel-Art-Board mit Live-Export." },
-      { name: "Markdown Beautifier", category: "Produktivität", description: "Formatiert Notizen mit fertigen Markdown-Vorlagen." },
-      { name: "Meeting Timer", category: "Produktivität", description: "Zeitet Agenda-Slots und zeigt dezente Warnungen." },
-      { name: "Focus Noise", category: "Produktivität", description: "Spieler für White Noise und Naturloops." },
-      { name: "Task Dice", category: "Spaß", description: "Würfelt die nächste Kleinaufgabe zum Starten." },
-      { name: "Idea Seeds", category: "Kreativ", description: "Zufällige Kreativ-Prompts für Brainstormings." },
-      { name: "Persona Builder", category: "Produktivität", description: "Skizziert Zielgruppen-Personas mit Kerninfos." },
-      { name: "Copy Tone Shifter", category: "Produktivität", description: "Wandelt Texte in verschiedene Tonalitäten." },
-      { name: "CTA Optimizer", category: "Analyse", description: "Empfiehlt starke Call-to-Action-Formulierungen." },
-      { name: "SEO Quick Glance", category: "Analyse", description: "Checkliste für Headlines, Keywords und Länge." },
-      { name: "Link Shortlist", category: "Produktivität", description: "Sammelt und sortiert Links nach Thema." },
-      { name: "Snippet Saver", category: "Entwicklung", description: "Speichert wiederverwendbare Code-Snippets." },
-      { name: "Regex Helper", category: "Entwicklung", description: "Testet und erklärt reguläre Ausdrücke." },
-      { name: "JSON Formatter", category: "Entwicklung", description: "Formatiert JSON und hebt Fehler hervor." },
-      { name: "API Scratchpad", category: "Entwicklung", description: "Notiert Endpunkte und Payload-Beispiele." },
-      { name: "Status Badge Maker", category: "Kreativ", description: "Erstellt kleine SVG-Badges im Neon-Look." },
-      { name: "Contrast Checker", category: "Analyse", description: "Prüft Farbkontrast und Barrierefreiheit." },
-      { name: "Keyboard Heatmap", category: "Spaß", description: "Visualisiert Tippstatistiken spielerisch." },
-      { name: "Microcopy Cards", category: "Produktivität", description: "Bibliothek kurzer UI-Texte zum Kopieren." },
-      { name: "Bug Repro Steps", category: "Entwicklung", description: "Checkliste für klare Fehlerberichte." },
-      { name: "Release Notes Writer", category: "Produktivität", description: "Hilft strukturierte Release Notes zu skizzieren." },
-      { name: "Sprint Poker", category: "Spaß", description: "Virtuelle Schätzungskarten für Planning Poker." },
-      { name: "Mood Board Lite", category: "Kreativ", description: "Zieht Bilder und Farben in ein Grid für Ideen." },
-      { name: "Typography Pairer", category: "Kreativ", description: "Schlägt Font-Kombinationen und Größen vor." },
-      { name: "Grid Overlay", category: "Kreativ", description: "Legt ein Raster über Screenshots für Layouts." },
-      { name: "Journey Map", category: "Produktivität", description: "Skizziert Nutzerreisen Schritt für Schritt." },
-      { name: "Flowchart Blocks", category: "Kreativ", description: "Bausteine für schnelle Diagramm-Notizen." },
-      { name: "Changelog Digest", category: "Produktivität", description: "Kondensiert lange Änderungslisten." },
-      { name: "Unit Converter", category: "Analyse", description: "Umrechnungen für Längen, Gewichte und mehr." },
-      { name: "Time Zone Buddy", category: "Produktivität", description: "Zeigt passende Meeting-Zeiten weltweit." },
-      { name: "Accessibility Checklist", category: "Analyse", description: "Kurze WCAG-Checks für schnelle Audits." },
-      { name: "Feature Toggler", category: "Entwicklung", description: "Plant Feature-Flags und Rollout-Notizen." },
-      { name: "Cache Buster", category: "Entwicklung", description: "Generiert einzigartige Version-Hashes." },
-      { name: "Pixel Ruler", category: "Kreativ", description: "Virtuelles Lineal für Screenshots." },
-      { name: "Webhook Logger", category: "Entwicklung", description: "Hält Payload-Beispiele und Header fest." },
-      { name: "SQL Notebook", category: "Analyse", description: "Notiert SQL-Snippets mit erklärenden Kommentaren." },
-      { name: "Data Sampler", category: "Analyse", description: "Erzeugt kleine Demo-Datensätze fürs Testen." },
-      { name: "Diff Highlighter", category: "Entwicklung", description: "Markiert Unterschiede zwischen Textblöcken." },
-      { name: "Commit Message Coach", category: "Produktivität", description: "Strukturiert Commit-Botschaften nach Konvention." },
-      { name: "Roadmap Blocks", category: "Produktivität", description: "Stellt Feature-Bausteine in Quartalen dar." },
-      { name: "Kanban Mini", category: "Produktivität", description: "Minimalistisches Board für Ad-hoc-Tasks." },
-      { name: "OKR Snapshot", category: "Analyse", description: "Kurze Übersicht über Ziele und Key Results." },
-      { name: "Benchmark Cards", category: "Analyse", description: "Vergleicht Features oder Produkte nebeneinander." },
-      { name: "Latency Gauge", category: "Entwicklung", description: "Notiert Performance-Messpunkte und Budget." },
-      { name: "Packet Inspector", category: "Entwicklung", description: "Sammelt Request/Response-Notizen." },
-      { name: "Syntax Sandbox", category: "Entwicklung", description: "Testbereich für kleine Code-Snippets." },
-      { name: "CLI Cheats", category: "Entwicklung", description: "Kurze Befehlsreferenzen für Terminal-Workflows." },
-      { name: "API Status Board", category: "Analyse", description: "Mini-Monitor für Service-Health-Notizen." },
-      { name: "Whiteboard Grid", category: "Kreativ", description: "Kachelraster für schnelle Ideenskizzen." },
-      { name: "Storyboard Frames", category: "Kreativ", description: "Mini-Frames für Video- oder UI-Ideen." },
-      { name: "Name Generator", category: "Spaß", description: "Mix aus Silben für Produktnamen." },
-      { name: "Emoji Moodline", category: "Spaß", description: "Verlauf visueller Stimmungen mit Emojis." },
-      { name: "Habit Tracker", category: "Produktivität", description: "Einfacher Gewohnheitszähler für 7 Tage." },
-      { name: "Water Reminder", category: "Produktivität", description: "Zeigt Trinkintervalle über den Tag." },
-      { name: "Breathing Guide", category: "Spaß", description: "Geführte Atemzüge mit sanften Animationen." },
-      { name: "Soundboard", category: "Spaß", description: "Kleine Sammlung kurzer Klang-Buttons." },
+      { name: "JSON Formatter", category: "Entwicklung", description: "Formatiert JSON und zeigt Fehler klar an.", render: renderJsonFormatter },
+      { name: "Einheiten-Converter", category: "Analyse", description: "Länge, Gewicht und Temperatur konvertieren.", render: renderUnitConverter },
+      { name: "Gradient Crafter", category: "Kreativ", description: "Baut CSS-Verläufe mit Live-Vorschau.", render: renderGradientCrafter },
+      { name: "Markdown Vorschau", category: "Entwicklung", description: "Markdown tippen und sofort als HTML sehen.", render: renderMarkdownPreviewer },
+      { name: "Base64 Tool", category: "Produktivität", description: "Texte schnell encodieren oder decodieren.", render: renderBase64Tool },
+      { name: "Zeitzonen-Planer", category: "Analyse", description: "Zeiten parallel in mehreren Zonen prüfen.", render: renderTimezonePlanner },
     ];
 
     const renderTools = () => {
@@ -929,18 +1442,28 @@
           <h3>${tool.name}</h3>
           <p>${tool.description}</p>
         `;
+        const startButton = createButton("Tool öffnen", () => openTool(tool));
+        card.appendChild(startButton);
         toolGrid.appendChild(card);
       });
 
-      toolCount.textContent = `${tools.length}+`;
+      toolCount.textContent = `${tools.length}`;
       toolboxTag.textContent = filtered.length === tools.length
-        ? "✨ 50+ Tools sofort verfügbar"
+        ? "✨ Alle Tools bereit"
         : `🔍 ${filtered.length} Treffer`;
+    };
+
+    const openTool = (tool) => {
+      toolPreviewTitle.textContent = tool.name;
+      toolPreviewDesc.textContent = tool.description;
+      toolWorkspace.innerHTML = "";
+      toolWorkspace.appendChild(tool.render());
     };
 
     toolSearch.addEventListener("input", renderTools);
     toolFilter.addEventListener("change", renderTools);
     renderTools();
+    openTool(tools[0]);
   </script>
 </body>
 </html>

@@ -359,6 +359,152 @@
       gap: 6px;
     }
 
+    .tool-preview {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    .tool-preview h3 {
+      margin: 0;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      letter-spacing: 0.4px;
+    }
+
+    .tool-preview p {
+      margin: 0;
+      color: #d6d9e0;
+      line-height: 1.5;
+    }
+
+    .tool-preview label {
+      display: grid;
+      gap: 6px;
+      color: #e9ecf2;
+      font-weight: 600;
+    }
+
+    .tool-preview input,
+    .tool-preview textarea,
+    .tool-preview select {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      color: #fff;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 1rem;
+    }
+
+    .tool-preview textarea {
+      min-height: 140px;
+      resize: vertical;
+    }
+
+    .tool-preview .row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+    }
+
+    .tool-preview .output {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      min-height: 48px;
+      word-break: break-word;
+      font-family: 'Poppins', 'Fira Code', monospace;
+    }
+
+    .tool-preview table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    }
+
+    .tool-preview table th,
+    .tool-preview table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .tool-preview table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .color-preview {
+      width: 100%;
+      height: 140px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid var(--border);
+      width: fit-content;
+    }
+
+    input[type="range"] {
+      accent-color: #60a5fa;
+      width: 100%;
+    }
+
+    .tool-preview .gradient-box {
+      height: 140px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 10px;
+      width: fit-content;
+      letter-spacing: 0.3px;
+    }
+
+    .inline-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .muted {
+      color: #cfd5e3;
+      font-size: 0.95rem;
+    }
+
     @media (max-width: 960px) {
       .glass-card {
         padding: 40px 28px 32px;
@@ -495,7 +641,7 @@
             <span>Schimmernde Laune</span>
           </div>
           <div class="stat">
-            <strong id="tool-count">50+</strong>
+            <strong id="tool-count">0</strong>
             <span>Werkzeuge in der Toolbox</span>
           </div>
         </div>
@@ -505,8 +651,8 @@
             <div class="tag" id="toolbox-tag">✨ Toolbox geladen</div>
             <h2>Multitool-Werkstatt</h2>
             <p class="subtitle">
-              Über 50 praktische Mini-Tools für jeden Tag: Von Kreativität und Produktivität bis zu
-              Entwicklerspielplätzen. Filtern oder suchen, um blitzschnell das passende Werkzeug zu finden.
+              Funktionierende Mini-Tools für Alltag, Code und Kreativität. Filtern oder suchen, starte dann ein
+              Tool und arbeite direkt im Browser weiter. Jedes Tool arbeitet live im Browser – ohne Server.
             </p>
             <div class="tool-controls">
               <input
@@ -526,6 +672,11 @@
             </div>
           </div>
           <div id="tool-grid" class="tools-grid" role="list"></div>
+          <div class="tool-preview" id="tool-preview">
+            <h3><span aria-hidden="true">🧰</span><span id="tool-preview-title">Tool auswählen</span></h3>
+            <p id="tool-preview-desc" class="muted">Wähle ein Tool aus der Liste, um es hier zu öffnen.</p>
+            <div id="tool-workspace" aria-live="polite"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -839,67 +990,1224 @@
       window.open(url, "_blank", "noopener");
     });
 
+    const toolWorkspace = document.getElementById("tool-workspace");
+    const toolPreviewTitle = document.getElementById("tool-preview-title");
+    const toolPreviewDesc = document.getElementById("tool-preview-desc");
+
+    const createButton = (label, onClick) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = label;
+      button.addEventListener("click", onClick);
+      return button;
+    };
+
+    const copyText = (text) => navigator.clipboard?.writeText(text || "");
+
+    const renderJsonFormatter = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+
+      const input = document.createElement("textarea");
+      input.placeholder = '{"message":"Gib JSON ein"}';
+      input.value = '{"hello":"world","zahlen":[1,2,3]}';
+      const output = document.createElement("pre");
+      output.className = "output";
+      const status = document.createElement("div");
+      status.className = "badge";
+      status.textContent = "Wartet auf Eingabe";
+
+      const format = () => {
+        try {
+          const parsed = JSON.parse(input.value);
+          const formatted = JSON.stringify(parsed, null, 2);
+          output.textContent = formatted;
+          status.textContent = "✅ Erfolgreich formatiert";
+        } catch (error) {
+          output.textContent = "";
+          status.textContent = `❌ Fehler: ${error.message}`;
+        }
+      };
+
+      const copy = () => {
+        copyText(output.textContent || "");
+        status.textContent = "📋 In Zwischenablage kopiert";
+      };
+
+      const buttons = document.createElement("div");
+      buttons.className = "inline-actions";
+      buttons.append(
+        createButton("Formatieren", format),
+        createButton("Kopieren", copy),
+        createButton("Zurücksetzen", () => {
+          input.value = "";
+          output.textContent = "";
+          status.textContent = "Wartet auf Eingabe";
+        })
+      );
+
+      const labelInput = document.createElement("label");
+      labelInput.textContent = "Roh-JSON";
+      labelInput.appendChild(input);
+
+      const labelOutput = document.createElement("label");
+      labelOutput.textContent = "Resultat";
+      labelOutput.appendChild(output);
+
+      wrapper.append(status, labelInput, labelOutput, buttons);
+      format();
+      return wrapper;
+    };
+
+    const renderUnitConverter = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+
+      const groups = {
+        length: {
+          label: "Länge",
+          units: {
+            m: { label: "Meter", toBase: (v) => v, fromBase: (v) => v },
+            km: { label: "Kilometer", toBase: (v) => v * 1000, fromBase: (v) => v / 1000 },
+            mi: { label: "Meile", toBase: (v) => v * 1609.34, fromBase: (v) => v / 1609.34 },
+            ft: { label: "Fuß", toBase: (v) => v * 0.3048, fromBase: (v) => v / 0.3048 },
+          },
+        },
+        weight: {
+          label: "Gewicht",
+          units: {
+            g: { label: "Gramm", toBase: (v) => v, fromBase: (v) => v },
+            kg: { label: "Kilogramm", toBase: (v) => v * 1000, fromBase: (v) => v / 1000 },
+            lb: { label: "Pfund", toBase: (v) => v * 453.592, fromBase: (v) => v / 453.592 },
+            oz: { label: "Unze", toBase: (v) => v * 28.3495, fromBase: (v) => v / 28.3495 },
+          },
+        },
+        temperature: {
+          label: "Temperatur",
+          units: {
+            C: {
+              label: "°C",
+              toBase: (v) => v,
+              fromBase: (v) => v,
+            },
+            F: {
+              label: "°F",
+              toBase: (v) => (v - 32) * (5 / 9),
+              fromBase: (v) => v * (9 / 5) + 32,
+            },
+            K: {
+              label: "K",
+              toBase: (v) => v - 273.15,
+              fromBase: (v) => v + 273.15,
+            },
+          },
+        },
+      };
+
+      const typeSelect = document.createElement("select");
+      Object.entries(groups).forEach(([value, meta]) => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = meta.label;
+        typeSelect.appendChild(option);
+      });
+
+      const valueInput = document.createElement("input");
+      valueInput.type = "number";
+      valueInput.value = "1";
+
+      const fromSelect = document.createElement("select");
+      const toSelect = document.createElement("select");
+
+      const output = document.createElement("div");
+      output.className = "output";
+
+      const populateUnits = () => {
+        const selectedGroup = groups[typeSelect.value];
+        fromSelect.innerHTML = "";
+        toSelect.innerHTML = "";
+        Object.entries(selectedGroup.units).forEach(([value, meta]) => {
+          const optionFrom = document.createElement("option");
+          optionFrom.value = value;
+          optionFrom.textContent = meta.label;
+          const optionTo = optionFrom.cloneNode(true);
+          fromSelect.appendChild(optionFrom);
+          toSelect.appendChild(optionTo);
+        });
+        toSelect.selectedIndex = Math.min(1, toSelect.options.length - 1);
+      };
+
+      const convert = () => {
+        const raw = Number(valueInput.value);
+        if (Number.isNaN(raw)) {
+          output.textContent = "Bitte Zahl eingeben";
+          return;
+        }
+        const selectedGroup = groups[typeSelect.value];
+        const from = selectedGroup.units[fromSelect.value];
+        const to = selectedGroup.units[toSelect.value];
+        const baseValue = from.toBase(raw);
+        const result = to.fromBase(baseValue);
+        output.textContent = `${raw} ${from.label} ≈ ${result.toFixed(4)} ${to.label}`;
+      };
+
+      [valueInput, fromSelect, toSelect, typeSelect].forEach((el) => el.addEventListener("input", convert));
+      typeSelect.addEventListener("change", () => {
+        populateUnits();
+        convert();
+      });
+
+      populateUnits();
+      convert();
+
+      const typeRow = document.createElement("div");
+      typeRow.className = "row";
+      typeRow.append(
+        (() => { const l = document.createElement("label"); l.textContent = "Messbereich"; l.appendChild(typeSelect); return l; })()
+      );
+
+      const inputsRow = document.createElement("div");
+      inputsRow.className = "row";
+      inputsRow.append(
+        (() => { const l = document.createElement("label"); l.textContent = "Wert"; l.appendChild(valueInput); return l; })(),
+        (() => { const l = document.createElement("label"); l.textContent = "Von"; l.appendChild(fromSelect); return l; })(),
+        (() => { const l = document.createElement("label"); l.textContent = "Nach"; l.appendChild(toSelect); return l; })()
+      );
+
+      const labelOutput = document.createElement("label");
+      labelOutput.textContent = "Ergebnis";
+      labelOutput.appendChild(output);
+
+      wrapper.append(typeRow, inputsRow, labelOutput);
+      return wrapper;
+    };
+
+    const renderGradientCrafter = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+
+      const startColor = document.createElement("input");
+      startColor.type = "color";
+      startColor.value = "#ff00cc";
+      const endColor = document.createElement("input");
+      endColor.type = "color";
+      endColor.value = "#00ffee";
+      const angle = document.createElement("input");
+      angle.type = "range";
+      angle.min = "0";
+      angle.max = "360";
+      angle.value = "120";
+
+      const preview = document.createElement("div");
+      preview.className = "gradient-box";
+
+      const cssCode = document.createElement("textarea");
+      cssCode.readOnly = true;
+
+      const updateGradient = () => {
+        const css = `linear-gradient(${angle.value}deg, ${startColor.value}, ${endColor.value})`;
+        preview.style.background = css;
+        cssCode.value = `background: ${css};`;
+      };
+
+      [startColor, endColor, angle].forEach((el) => el.addEventListener("input", updateGradient));
+      updateGradient();
+
+      const copyButton = createButton("CSS kopieren", () => {
+        copyText(cssCode.value || "");
+      });
+
+      const controlsRow = document.createElement("div");
+      controlsRow.className = "row";
+      controlsRow.append(
+        (() => { const l = document.createElement("label"); l.textContent = "Startfarbe"; l.appendChild(startColor); return l; })(),
+        (() => { const l = document.createElement("label"); l.textContent = "Endfarbe"; l.appendChild(endColor); return l; })(),
+        (() => { const l = document.createElement("label"); l.textContent = `Winkel (${angle.value}°)`; angle.addEventListener("input", () => l.textContent = `Winkel (${angle.value}°)`); l.appendChild(angle); return l; })()
+      );
+
+      const labelPreview = document.createElement("label");
+      labelPreview.textContent = "Vorschau";
+      labelPreview.appendChild(preview);
+
+      const labelCode = document.createElement("label");
+      labelCode.textContent = "CSS";
+      labelCode.appendChild(cssCode);
+
+      wrapper.append(controlsRow, labelPreview, labelCode, copyButton);
+      return wrapper;
+    };
+
+    const markdownToHtml = (text) => {
+      const escape = (str) => str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const formatInline = (str) =>
+        str
+          .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+          .replace(/\*(.*?)\*/g, "<em>$1</em>")
+          .replace(/`(.*?)`/g, "<code>$1</code>");
+
+      const lines = text.split(/\r?\n/);
+      let html = "";
+      let inList = false;
+
+      lines.forEach((line) => {
+        if (line.startsWith("## ")) {
+          html += `<h3>${formatInline(escape(line.slice(3)))}</h3>`;
+          inList = false;
+          return;
+        }
+        if (line.startsWith("# ")) {
+          html += `<h2>${formatInline(escape(line.slice(2)))}</h2>`;
+          inList = false;
+          return;
+        }
+        if (line.startsWith("- ")) {
+          if (!inList) {
+            html += "<ul>";
+            inList = true;
+          }
+          html += `<li>${formatInline(escape(line.slice(2)))}</li>`;
+          return;
+        }
+        if (line.trim() === "") {
+          if (inList) {
+            html += "</ul>";
+            inList = false;
+          }
+          return;
+        }
+        if (inList) {
+          html += "</ul>";
+          inList = false;
+        }
+        html += `<p>${formatInline(escape(line))}</p>`;
+      });
+
+      if (inList) html += "</ul>";
+      return html || "<p class='muted'>Keine Vorschau vorhanden</p>";
+    };
+
+    const renderMarkdownPreviewer = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+
+      const input = document.createElement("textarea");
+      input.placeholder = "# Überschrift\n- Punkt eins\n- Punkt zwei";
+      input.value = "# Markdown Live\n- Schreibe links\n- Vorschau rechts\n**Fett** und *kursiv* gehen auch.";
+      const output = document.createElement("div");
+      output.className = "output";
+      output.style.minHeight = "120px";
+
+      const render = () => {
+        output.innerHTML = markdownToHtml(input.value);
+      };
+
+      input.addEventListener("input", render);
+      render();
+
+      const actions = document.createElement("div");
+      actions.className = "inline-actions";
+      actions.append(
+        createButton("Kopieren", () => copyText(input.value)),
+        createButton("Vorschau kopieren", () => copyText(output.innerText))
+      );
+
+      const row = document.createElement("div");
+      row.className = "row";
+      row.append(
+        (() => { const l = document.createElement("label"); l.textContent = "Markdown"; l.appendChild(input); return l; })(),
+        (() => { const l = document.createElement("label"); l.textContent = "Vorschau"; l.appendChild(output); return l; })()
+      );
+
+      wrapper.append(row, actions);
+      return wrapper;
+    };
+
+    const renderBase64Tool = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+      const input = document.createElement("textarea");
+      input.placeholder = "Text hier eingeben";
+      const output = document.createElement("textarea");
+      output.readOnly = true;
+
+      const encode = () => {
+        try {
+          output.value = btoa(unescape(encodeURIComponent(input.value)));
+        } catch (error) {
+          output.value = `Fehler: ${error.message}`;
+        }
+      };
+
+      const decode = () => {
+        try {
+          output.value = decodeURIComponent(escape(atob(input.value)));
+        } catch (error) {
+          output.value = `Fehler: ${error.message}`;
+        }
+      };
+
+      const actions = document.createElement("div");
+      actions.className = "inline-actions";
+      actions.append(
+        createButton("Base64 encodieren", encode),
+        createButton("Base64 decodieren", decode),
+        createButton("Ausgabe kopieren", () => copyText(output.value))
+      );
+
+      const row = document.createElement("div");
+      row.className = "row";
+      row.append(
+        (() => { const l = document.createElement("label"); l.textContent = "Eingabe"; l.appendChild(input); return l; })(),
+        (() => { const l = document.createElement("label"); l.textContent = "Ausgabe"; l.appendChild(output); return l; })()
+      );
+
+      wrapper.append(row, actions);
+      return wrapper;
+    };
+
+    const renderTimezonePlanner = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+      const now = new Date();
+      const localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+      const timeInput = document.createElement("input");
+      timeInput.type = "datetime-local";
+      timeInput.value = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
+      const baseSelect = document.createElement("select");
+      [localTimezone, "UTC", "Europe/Berlin", "America/New_York", "Asia/Tokyo", "Australia/Sydney"].forEach((zone) => {
+        const option = document.createElement("option");
+        option.value = zone;
+        option.textContent = zone;
+        baseSelect.appendChild(option);
+      });
+      baseSelect.value = localTimezone;
+
+      const targets = ["UTC", "Europe/Berlin", "America/New_York", "Asia/Tokyo", "Asia/Kolkata", "Australia/Sydney"];
+
+      const table = document.createElement("table");
+      const thead = document.createElement("thead");
+      thead.innerHTML = "<tr><th>Zone</th><th>Zeit</th></tr>";
+      table.appendChild(thead);
+      const tbody = document.createElement("tbody");
+      table.appendChild(tbody);
+
+      const getOffsetMinutes = (date, timeZone) => {
+        const localeDate = new Date(date.toLocaleString("en-US", { timeZone }));
+        return (localeDate.getTime() - date.getTime()) / 60000;
+      };
+
+      const renderRows = () => {
+        tbody.innerHTML = "";
+        const localDate = new Date(timeInput.value);
+        if (Number.isNaN(localDate.getTime())) return;
+        const offsetDifference = getOffsetMinutes(localDate, baseSelect.value);
+        const baseDate = new Date(localDate.getTime() - offsetDifference * 60000);
+        targets.forEach((zone) => {
+          const row = document.createElement("tr");
+          const dateTime = new Intl.DateTimeFormat("de-DE", {
+            hour: "2-digit",
+            minute: "2-digit",
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            timeZone: zone,
+          }).format(baseDate);
+          const label = zone === baseSelect.value ? `${zone} (Basis)` : zone;
+          row.innerHTML = `<td>${label}</td><td>${dateTime}</td>`;
+          tbody.appendChild(row);
+        });
+      };
+
+      timeInput.addEventListener("input", renderRows);
+      baseSelect.addEventListener("change", renderRows);
+
+      renderRows();
+
+      const row = document.createElement("div");
+      row.className = "row";
+      row.append(
+        (() => { const l = document.createElement("label"); l.textContent = "Basiszeit"; l.appendChild(timeInput); return l; })(),
+        (() => { const l = document.createElement("label"); l.textContent = "Zeitzone"; l.appendChild(baseSelect); return l; })()
+      );
+
+      wrapper.append(row, table);
+      return wrapper;
+    };
+
+    const renderBinaryCoder = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+      const input = document.createElement("textarea");
+      input.placeholder = "Text oder 0/1 Sequenz";
+      const output = document.createElement("textarea");
+      output.readOnly = true;
+      const status = document.createElement("div");
+      status.className = "badge";
+      status.textContent = "Wartet auf Aktion";
+
+      const toBinary = () => {
+        const text = input.value;
+        const result = Array.from(text)
+          .map((ch) => ch.charCodeAt(0).toString(2).padStart(8, "0"))
+          .join(" ");
+        output.value = result;
+        status.textContent = "✅ In Binär gewandelt";
+      };
+
+      const toText = () => {
+        const parts = input.value.trim().split(/\s+/).filter(Boolean);
+        try {
+          const chars = parts.map((p) => String.fromCharCode(parseInt(p, 2)));
+          if (chars.some((c) => Number.isNaN(c.charCodeAt?.(0)))) throw new Error("Ungültige Bits");
+          output.value = chars.join("");
+          status.textContent = "✅ In Text gewandelt";
+        } catch (error) {
+          status.textContent = `❌ Fehler: ${error.message}`;
+        }
+      };
+
+      const row = document.createElement("div");
+      row.className = "row";
+      row.append(
+        (() => { const l = document.createElement("label"); l.textContent = "Eingabe"; l.appendChild(input); return l; })(),
+        (() => { const l = document.createElement("label"); l.textContent = "Ausgabe"; l.appendChild(output); return l; })()
+      );
+
+      const buttons = document.createElement("div");
+      buttons.className = "inline-actions";
+      buttons.append(
+        createButton("➡️ Text → Binär", toBinary),
+        createButton("⬅️ Binär → Text", toText),
+        createButton("Kopieren", () => copyText(output.value)),
+        createButton("Leeren", () => { input.value = ""; output.value = ""; status.textContent = "Wartet auf Aktion"; })
+      );
+
+      wrapper.append(status, row, buttons);
+      return wrapper;
+    };
+
+    const renderCalculator = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+      const input = document.createElement("input");
+      input.placeholder = "Gib eine Rechnung ein, z.B. (12+4)/2^2";
+      const result = document.createElement("div");
+      result.className = "output";
+      result.textContent = "Ergebnis erscheint hier";
+      const status = document.createElement("div");
+      status.className = "badge";
+      status.textContent = "Sichere Berechnung aktiv";
+
+      const evaluate = () => {
+        const expression = input.value.replace(/\^/g, "**");
+        const safe = /^[0-9+\-*/().%\s^]*$/;
+        if (!safe.test(input.value)) {
+          status.textContent = "❌ Ungültige Zeichen";
+          result.textContent = "";
+          return;
+        }
+        try {
+          // eslint-disable-next-line no-new-func
+          const value = Function(`"use strict"; return (${expression || 0});`)();
+          result.textContent = Number.isFinite(value) ? value : "Ungültiges Ergebnis";
+          status.textContent = "✅ Berechnet";
+        } catch (error) {
+          status.textContent = `❌ Fehler: ${error.message}`;
+          result.textContent = "";
+        }
+      };
+
+      const keypad = document.createElement("div");
+      keypad.className = "inline-actions";
+      ["7","8","9","/","4","5","6","*","1","2","3","-","0",".","+","(",")","^","%"].forEach((val) => {
+        keypad.appendChild(createButton(val, () => {
+          input.value += val;
+          evaluate();
+        }));
+      });
+
+      const actions = document.createElement("div");
+      actions.className = "inline-actions";
+      actions.append(
+        createButton("Berechnen", evaluate),
+        createButton("AC", () => { input.value = ""; result.textContent = "Ergebnis erscheint hier"; status.textContent = "Sichere Berechnung aktiv"; }),
+        createButton("√", () => { input.value = `Math.sqrt(${input.value || 0})`; evaluate(); })
+      );
+
+      const labelInput = document.createElement("label");
+      labelInput.textContent = "Ausdruck";
+      labelInput.appendChild(input);
+
+      const labelResult = document.createElement("label");
+      labelResult.textContent = "Ergebnis";
+      labelResult.appendChild(result);
+
+      wrapper.append(status, labelInput, actions, keypad, labelResult);
+      return wrapper;
+    };
+
+    const renderCurrencyConverter = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+      const amount = document.createElement("input");
+      amount.type = "number";
+      amount.value = 100;
+      const base = document.createElement("select");
+      const currencies = {
+        EUR: 1,
+        USD: 1.08,
+        GBP: 0.86,
+        CHF: 0.97,
+        JPY: 170.12,
+        AUD: 1.62,
+      };
+      Object.keys(currencies).forEach((code) => {
+        const opt = document.createElement("option");
+        opt.value = code;
+        opt.textContent = code;
+        base.appendChild(opt);
+      });
+      const table = document.createElement("table");
+      table.innerHTML = "<thead><tr><th>Währung</th><th>Betrag</th></tr></thead>";
+      const tbody = document.createElement("tbody");
+      table.appendChild(tbody);
+
+      const renderRows = () => {
+        tbody.innerHTML = "";
+        const value = Number(amount.value) || 0;
+        const baseRate = currencies[base.value];
+        Object.entries(currencies).forEach(([code, rate]) => {
+          const tr = document.createElement("tr");
+          const converted = (value / baseRate) * rate;
+          tr.innerHTML = `<td>${code}</td><td>${converted.toFixed(2)}</td>`;
+          tbody.appendChild(tr);
+        });
+      };
+
+      amount.addEventListener("input", renderRows);
+      base.addEventListener("change", renderRows);
+      renderRows();
+
+      const row = document.createElement("div");
+      row.className = "row";
+      row.append(
+        (() => { const l = document.createElement("label"); l.textContent = "Betrag"; l.appendChild(amount); return l; })(),
+        (() => { const l = document.createElement("label"); l.textContent = "Basis"; l.appendChild(base); return l; })()
+      );
+
+      wrapper.append(row, table);
+      return wrapper;
+    };
+
+    const renderColorAnalyzer = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+      const input = document.createElement("input");
+      input.placeholder = "#ff0099 oder rgb(12,34,56)";
+      input.value = "#6ee7ff";
+      const preview = document.createElement("div");
+      preview.className = "color-preview";
+      const table = document.createElement("table");
+      table.innerHTML = "<thead><tr><th>Format</th><th>Wert</th></tr></thead>";
+      const tbody = document.createElement("tbody");
+      table.appendChild(tbody);
+
+      const clamp = (v, max) => Math.min(Math.max(v, 0), max);
+
+      const parseColor = (value) => {
+        if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(value)) {
+          const hex = value.replace("#", "");
+          const full = hex.length === 3 ? hex.split("").map((c) => c + c).join("") : hex;
+          const int = parseInt(full, 16);
+          return { r: (int >> 16) & 255, g: (int >> 8) & 255, b: int & 255 };
+        }
+        const rgbMatch = value.match(/rgb\s*\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)/i);
+        if (rgbMatch) {
+          return { r: clamp(Number(rgbMatch[1]), 255), g: clamp(Number(rgbMatch[2]), 255), b: clamp(Number(rgbMatch[3]), 255) };
+        }
+        return null;
+      };
+
+      const toHex = ({ r, g, b }) => `#${[r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
+      const toHsl = ({ r, g, b }) => {
+        const rn = r / 255; const gn = g / 255; const bn = b / 255;
+        const max = Math.max(rn, gn, bn), min = Math.min(rn, gn, bn);
+        let h; const l = (max + min) / 2; const d = max - min;
+        const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+        switch (max) {
+          case rn: h = (gn - bn) / d + (gn < bn ? 6 : 0); break;
+          case gn: h = (bn - rn) / d + 2; break;
+          default: h = (rn - gn) / d + 4; break;
+        }
+        h = Math.round((h || 0) * 60);
+        return `hsl(${h}, ${(s * 100).toFixed(1)}%, ${(l * 100).toFixed(1)}%)`;
+      };
+
+      const renderRows = () => {
+        const color = parseColor(input.value.trim());
+        tbody.innerHTML = "";
+        if (!color) {
+          preview.style.background = "transparent";
+          return;
+        }
+        const rows = [
+          ["RGB", `rgb(${color.r}, ${color.g}, ${color.b})`],
+          ["HEX", toHex(color)],
+          ["HSL", toHsl(color)],
+        ];
+        rows.forEach(([label, val]) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${label}</td><td>${val}</td>`;
+          tbody.appendChild(tr);
+        });
+        preview.style.background = toHex(color);
+      };
+
+      input.addEventListener("input", renderRows);
+      renderRows();
+
+      const label = document.createElement("label");
+      label.textContent = "Farbe";
+      label.appendChild(input);
+
+      wrapper.append(label, preview, table);
+      return wrapper;
+    };
+
+    const renderPasswordGenerator = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+      const length = document.createElement("input");
+      length.type = "range";
+      length.min = 6;
+      length.max = 32;
+      length.value = 16;
+      const lengthValue = document.createElement("div");
+      lengthValue.className = "pill";
+      lengthValue.textContent = `Länge: ${length.value}`;
+      const checkboxes = [
+        { label: "Großbuchstaben", chars: "ABCDEFGHIJKLMNOPQRSTUVWXYZ", checked: true },
+        { label: "Kleinbuchstaben", chars: "abcdefghijklmnopqrstuvwxyz", checked: true },
+        { label: "Zahlen", chars: "0123456789", checked: true },
+        { label: "Symbole", chars: "!@#$%^&*()_+-=[]{};:,.?/" },
+      ].map((option) => {
+        const wrapper = document.createElement("label");
+        const box = document.createElement("input");
+        box.type = "checkbox";
+        box.checked = option.checked || false;
+        wrapper.append(box, document.createTextNode(` ${option.label}`));
+        return { node: wrapper, box, chars: option.chars };
+      });
+      const output = document.createElement("textarea");
+      output.readOnly = true;
+
+      const generate = () => {
+        let pool = "";
+        checkboxes.forEach(({ box, chars }) => { if (box.checked) pool += chars; });
+        if (!pool) return;
+        let pass = "";
+        for (let i = 0; i < Number(length.value); i++) {
+          pass += pool.charAt(Math.floor(Math.random() * pool.length));
+        }
+        output.value = pass;
+      };
+
+      length.addEventListener("input", () => { lengthValue.textContent = `Länge: ${length.value}`; generate(); });
+      checkboxes.forEach(({ box }) => box.addEventListener("change", generate));
+
+      const optionsRow = document.createElement("div");
+      optionsRow.className = "row";
+      optionsRow.append(
+        (() => { const l = document.createElement("label"); l.textContent = "Länge"; l.append(length, lengthValue); return l; })(),
+        (() => { const l = document.createElement("label"); l.textContent = "Zeichentypen"; l.append(...checkboxes.map((c) => c.node)); return l; })()
+      );
+
+      const actions = document.createElement("div");
+      actions.className = "inline-actions";
+      actions.append(
+        createButton("Passwort generieren", generate),
+        createButton("Kopieren", () => copyText(output.value))
+      );
+
+      const outLabel = document.createElement("label");
+      outLabel.textContent = "Ergebnis";
+      outLabel.appendChild(output);
+
+      wrapper.append(optionsRow, actions, outLabel);
+      generate();
+      return wrapper;
+    };
+
+    const renderWordCounter = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+      const input = document.createElement("textarea");
+      input.placeholder = "Text einfügen";
+      input.value = "Schneller Check für Wörter, Zeichen und Sätze.";
+      const statsTable = document.createElement("table");
+      statsTable.innerHTML = "<thead><tr><th>Typ</th><th>Wert</th></tr></thead>";
+      const tbody = document.createElement("tbody");
+      statsTable.appendChild(tbody);
+
+      const update = () => {
+        const text = input.value;
+        const words = (text.match(/[^\s]+/g) || []).length;
+        const chars = text.length;
+        const sentences = (text.match(/[.!?]+/g) || []).length;
+        const lines = text.split(/\n/).length;
+        const items = [
+          ["Wörter", words],
+          ["Zeichen", chars],
+          ["Sätze", sentences],
+          ["Zeilen", lines],
+        ];
+        tbody.innerHTML = "";
+        items.forEach(([label, val]) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${label}</td><td>${val}</td>`;
+          tbody.appendChild(tr);
+        });
+      };
+
+      input.addEventListener("input", update);
+      update();
+
+      const label = document.createElement("label");
+      label.textContent = "Text";
+      label.appendChild(input);
+
+      wrapper.append(label, statsTable);
+      return wrapper;
+    };
+
+    const renderRegexTester = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+      const pattern = document.createElement("input");
+      pattern.placeholder = "z.B. ([A-Z]{2,})";
+      const flags = document.createElement("input");
+      flags.placeholder = "gmi";
+      const sample = document.createElement("textarea");
+      sample.value = "HELLO world HELLO";
+      const matches = document.createElement("div");
+      matches.className = "output";
+
+      const run = () => {
+        matches.innerHTML = "";
+        try {
+          const regex = new RegExp(pattern.value, flags.value);
+          const result = [...sample.value.matchAll(regex)];
+          if (!result.length) {
+            matches.textContent = "Keine Treffer";
+            return;
+          }
+          const list = document.createElement("ul");
+          result.forEach((m) => {
+            const li = document.createElement("li");
+            li.textContent = `${m[0]} @ Index ${m.index}`;
+            list.appendChild(li);
+          });
+          matches.appendChild(list);
+        } catch (error) {
+          matches.textContent = `Fehler: ${error.message}`;
+        }
+      };
+
+      [pattern, flags, sample].forEach((el) => el.addEventListener("input", run));
+      run();
+
+      const row = document.createElement("div");
+      row.className = "row";
+      row.append(
+        (() => { const l = document.createElement("label"); l.textContent = "Pattern"; l.appendChild(pattern); return l; })(),
+        (() => { const l = document.createElement("label"); l.textContent = "Flags"; l.appendChild(flags); return l; })()
+      );
+
+      const sampleLabel = document.createElement("label");
+      sampleLabel.textContent = "Testtext";
+      sampleLabel.appendChild(sample);
+
+      const matchesLabel = document.createElement("label");
+      matchesLabel.textContent = "Treffer";
+      matchesLabel.appendChild(matches);
+
+      wrapper.append(row, sampleLabel, matchesLabel);
+      return wrapper;
+    };
+
+    const renderUrlTool = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+      const input = document.createElement("textarea");
+      input.placeholder = "URL oder Text";
+      const output = document.createElement("textarea");
+      output.readOnly = true;
+
+      const encode = () => { output.value = encodeURIComponent(input.value); };
+      const decode = () => { try { output.value = decodeURIComponent(input.value); } catch (e) { output.value = "Fehler beim Dekodieren"; } };
+
+      const row = document.createElement("div");
+      row.className = "row";
+      row.append(
+        (() => { const l = document.createElement("label"); l.textContent = "Eingabe"; l.appendChild(input); return l; })(),
+        (() => { const l = document.createElement("label"); l.textContent = "Ausgabe"; l.appendChild(output); return l; })()
+      );
+
+      const actions = document.createElement("div");
+      actions.className = "inline-actions";
+      actions.append(
+        createButton("Encodieren", encode),
+        createButton("Decodieren", decode),
+        createButton("Kopieren", () => copyText(output.value))
+      );
+
+      wrapper.append(row, actions);
+      return wrapper;
+    };
+
+    const renderCaseConverter = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+      const input = document.createElement("textarea");
+      input.placeholder = "Text";
+      input.value = "MixCase Text";
+      const output = document.createElement("textarea");
+      output.readOnly = true;
+
+      const toTitle = (text) => text.replace(/\w\S*/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+      const toSnake = (text) => text.trim().replace(/\s+/g, "_").toLowerCase();
+      const toKebab = (text) => text.trim().replace(/\s+/g, "-").toLowerCase();
+
+      const actions = document.createElement("div");
+      actions.className = "inline-actions";
+      actions.append(
+        createButton("UPPER", () => { output.value = input.value.toUpperCase(); }),
+        createButton("lower", () => { output.value = input.value.toLowerCase(); }),
+        createButton("Title Case", () => { output.value = toTitle(input.value); }),
+        createButton("snake_case", () => { output.value = toSnake(input.value); }),
+        createButton("kebab-case", () => { output.value = toKebab(input.value); }),
+        createButton("Kopieren", () => copyText(output.value))
+      );
+
+      const row = document.createElement("div");
+      row.className = "row";
+      row.append(
+        (() => { const l = document.createElement("label"); l.textContent = "Eingabe"; l.appendChild(input); return l; })(),
+        (() => { const l = document.createElement("label"); l.textContent = "Ausgabe"; l.appendChild(output); return l; })()
+      );
+
+      wrapper.append(row, actions);
+      return wrapper;
+    };
+
+    const renderDiffChecker = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+      const left = document.createElement("textarea");
+      left.placeholder = "Version A";
+      const right = document.createElement("textarea");
+      right.placeholder = "Version B";
+      const output = document.createElement("div");
+      output.className = "output";
+
+      const diff = () => {
+        const a = left.value.split(/\n/);
+        const b = right.value.split(/\n/);
+        const max = Math.max(a.length, b.length);
+        const lines = [];
+        for (let i = 0; i < max; i++) {
+          const leftLine = a[i] || "";
+          const rightLine = b[i] || "";
+          if (leftLine === rightLine) continue;
+          lines.push(`Zeile ${i + 1}: - ${leftLine} | + ${rightLine}`);
+        }
+        output.textContent = lines.length ? lines.join("\n") : "Keine Unterschiede";
+      };
+
+      [left, right].forEach((el) => el.addEventListener("input", diff));
+
+      const row = document.createElement("div");
+      row.className = "row";
+      row.append(
+        (() => { const l = document.createElement("label"); l.textContent = "Links"; l.appendChild(left); return l; })(),
+        (() => { const l = document.createElement("label"); l.textContent = "Rechts"; l.appendChild(right); return l; })()
+      );
+
+      const out = document.createElement("label");
+      out.textContent = "Differenzen";
+      out.appendChild(output);
+
+      wrapper.append(row, out);
+      return wrapper;
+    };
+
+    const renderBmi = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+      const height = document.createElement("input");
+      height.type = "number";
+      height.value = 180;
+      const weight = document.createElement("input");
+      weight.type = "number";
+      weight.value = 75;
+      const result = document.createElement("div");
+      result.className = "output";
+
+      const calc = () => {
+        const h = Number(height.value) / 100;
+        const w = Number(weight.value);
+        if (!h || !w) return;
+        const bmi = w / (h * h);
+        let status = "Normal";
+        if (bmi < 18.5) status = "Untergewicht";
+        else if (bmi >= 25 && bmi < 30) status = "Übergewicht";
+        else if (bmi >= 30) status = "Adipositas";
+        result.textContent = `${bmi.toFixed(1)} (${status})`;
+      };
+
+      [height, weight].forEach((el) => el.addEventListener("input", calc));
+      calc();
+
+      const row = document.createElement("div");
+      row.className = "row";
+      row.append(
+        (() => { const l = document.createElement("label"); l.textContent = "Größe (cm)"; l.appendChild(height); return l; })(),
+        (() => { const l = document.createElement("label"); l.textContent = "Gewicht (kg)"; l.appendChild(weight); return l; })()
+      );
+
+      const out = document.createElement("label");
+      out.textContent = "BMI";
+      out.appendChild(result);
+
+      wrapper.append(row, out);
+      return wrapper;
+    };
+
+    const renderDateDiff = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+      const start = document.createElement("input");
+      start.type = "date";
+      const end = document.createElement("input");
+      end.type = "date";
+      const output = document.createElement("div");
+      output.className = "output";
+
+      const update = () => {
+        if (!start.value || !end.value) return;
+        const s = new Date(start.value);
+        const e = new Date(end.value);
+        const diffMs = e - s;
+        const days = Math.round(diffMs / (1000 * 60 * 60 * 24));
+        const weeks = (days / 7).toFixed(1);
+        output.textContent = `${days} Tage | ${weeks} Wochen`;
+      };
+
+      [start, end].forEach((el) => el.addEventListener("change", update));
+
+      const row = document.createElement("div");
+      row.className = "row";
+      row.append(
+        (() => { const l = document.createElement("label"); l.textContent = "Start"; l.appendChild(start); return l; })(),
+        (() => { const l = document.createElement("label"); l.textContent = "Ende"; l.appendChild(end); return l; })()
+      );
+
+      const out = document.createElement("label");
+      out.textContent = "Differenz";
+      out.appendChild(output);
+
+      wrapper.append(row, out);
+      return wrapper;
+    };
+
+    const renderStopwatch = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+      const display = document.createElement("div");
+      display.className = "output";
+      display.textContent = "00:00.0";
+      let startTime = 0;
+      let elapsed = 0;
+      let running = false;
+      let raf;
+
+      const tick = () => {
+        if (!running) return;
+        elapsed = Date.now() - startTime;
+        const minutes = Math.floor(elapsed / 60000);
+        const seconds = Math.floor((elapsed % 60000) / 1000);
+        const tenths = Math.floor((elapsed % 1000) / 100);
+        display.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}.${tenths}`;
+        raf = requestAnimationFrame(tick);
+      };
+
+      const start = () => {
+        if (running) return;
+        running = true;
+        startTime = Date.now() - elapsed;
+        tick();
+      };
+
+      const stop = () => {
+        if (!running) return;
+        running = false;
+        cancelAnimationFrame(raf);
+        elapsed = Date.now() - startTime;
+      };
+
+      const reset = () => {
+        stop();
+        startTime = 0;
+        elapsed = 0;
+        display.textContent = "00:00.0";
+      };
+
+      const actions = document.createElement("div");
+      actions.className = "inline-actions";
+      actions.append(
+        createButton("Start", start),
+        createButton("Stop", stop),
+        createButton("Reset", reset)
+      );
+
+      wrapper.append(display, actions);
+      return wrapper;
+    };
+
+    const renderCsvViewer = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+      const input = document.createElement("textarea");
+      input.placeholder = "name,age\nAda,32";
+      const table = document.createElement("table");
+      table.innerHTML = "<thead><tr><th>CSV Vorschau</th></tr></thead>";
+      const tbody = document.createElement("tbody");
+      table.appendChild(tbody);
+
+      const renderRows = () => {
+        tbody.innerHTML = "";
+        const lines = input.value.split(/\n/).filter((l) => l.trim());
+        lines.forEach((line) => {
+          const tr = document.createElement("tr");
+          line.split(/,/).forEach((cell) => {
+            const td = document.createElement("td");
+            td.textContent = cell.trim();
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+      };
+
+      input.addEventListener("input", renderRows);
+      renderRows();
+
+      const label = document.createElement("label");
+      label.textContent = "CSV Inhalt";
+      label.appendChild(input);
+
+      wrapper.append(label, table);
+      return wrapper;
+    };
+
+    const renderNumberAnalyzer = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+      const input = document.createElement("input");
+      input.placeholder = "1,2,3,4";
+      input.value = "5,10,15,20";
+      const output = document.createElement("div");
+      output.className = "output";
+
+      const analyze = () => {
+        const numbers = input.value.split(/[,\s]+/).map(Number).filter((n) => !Number.isNaN(n));
+        if (!numbers.length) { output.textContent = "Keine Zahlen"; return; }
+        const sum = numbers.reduce((a, b) => a + b, 0);
+        const mean = sum / numbers.length;
+        const sorted = [...numbers].sort((a, b) => a - b);
+        const median = sorted.length % 2 ? sorted[(sorted.length - 1) / 2] : (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2;
+        output.textContent = `Min ${sorted[0]} | Max ${sorted[sorted.length - 1]} | Mittel ${mean.toFixed(2)} | Median ${median}`;
+      };
+
+      input.addEventListener("input", analyze);
+      analyze();
+
+      const label = document.createElement("label");
+      label.textContent = "Zahlen";
+      label.appendChild(input);
+
+      wrapper.append(label, output);
+      return wrapper;
+    };
+
+    const renderMarkdownChecklist = () => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "tool-preview";
+      const input = document.createElement("textarea");
+      input.placeholder = "- [ ] Aufgabe";
+      input.value = "- [ ] Neues Tool testen\n- [x] Theme prüfen";
+      const list = document.createElement("div");
+      list.className = "output";
+
+      const renderList = () => {
+        list.innerHTML = "";
+        const lines = input.value.split(/\n/);
+        lines.forEach((line, index) => {
+          const match = line.match(/- \[( |x)\] (.*)/i);
+          if (!match) return;
+          const item = document.createElement("div");
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.checked = match[1].toLowerCase() === "x";
+          checkbox.addEventListener("change", () => {
+            const updated = input.value.split(/\n/);
+            updated[index] = `- [${checkbox.checked ? "x" : " "}] ${match[2]}`;
+            input.value = updated.join("\n");
+            renderList();
+          });
+          const text = document.createElement("span");
+          text.textContent = match[2];
+          item.append(checkbox, text);
+          list.appendChild(item);
+        });
+        if (!list.childNodes.length) list.textContent = "Keine Markdown-Checkboxen gefunden";
+      };
+
+      input.addEventListener("input", renderList);
+      renderList();
+
+      const label = document.createElement("label");
+      label.textContent = "Markdown Liste";
+      label.appendChild(input);
+
+      wrapper.append(label, list);
+      return wrapper;
+    };
+
     const tools = [
-      { name: "AI Prompt Planner", category: "Produktivität", description: "Strukturiert Prompts und speichert Varianten." },
-      { name: "Color Harmony Mixer", category: "Kreativ", description: "Generiert harmonische Paletten aus einer Basisfarbe." },
-      { name: "Gradient Crafter", category: "Kreativ", description: "Erstellt nahtlose CSS-Verläufe mit Exportfunktion." },
-      { name: "Icon Sketchpad", category: "Kreativ", description: "Zeichnet einfache Vektor-Icons im Browser." },
-      { name: "Pixel Grid", category: "Kreativ", description: "Kleines Pixel-Art-Board mit Live-Export." },
-      { name: "Markdown Beautifier", category: "Produktivität", description: "Formatiert Notizen mit fertigen Markdown-Vorlagen." },
-      { name: "Meeting Timer", category: "Produktivität", description: "Zeitet Agenda-Slots und zeigt dezente Warnungen." },
-      { name: "Focus Noise", category: "Produktivität", description: "Spieler für White Noise und Naturloops." },
-      { name: "Task Dice", category: "Spaß", description: "Würfelt die nächste Kleinaufgabe zum Starten." },
-      { name: "Idea Seeds", category: "Kreativ", description: "Zufällige Kreativ-Prompts für Brainstormings." },
-      { name: "Persona Builder", category: "Produktivität", description: "Skizziert Zielgruppen-Personas mit Kerninfos." },
-      { name: "Copy Tone Shifter", category: "Produktivität", description: "Wandelt Texte in verschiedene Tonalitäten." },
-      { name: "CTA Optimizer", category: "Analyse", description: "Empfiehlt starke Call-to-Action-Formulierungen." },
-      { name: "SEO Quick Glance", category: "Analyse", description: "Checkliste für Headlines, Keywords und Länge." },
-      { name: "Link Shortlist", category: "Produktivität", description: "Sammelt und sortiert Links nach Thema." },
-      { name: "Snippet Saver", category: "Entwicklung", description: "Speichert wiederverwendbare Code-Snippets." },
-      { name: "Regex Helper", category: "Entwicklung", description: "Testet und erklärt reguläre Ausdrücke." },
-      { name: "JSON Formatter", category: "Entwicklung", description: "Formatiert JSON und hebt Fehler hervor." },
-      { name: "API Scratchpad", category: "Entwicklung", description: "Notiert Endpunkte und Payload-Beispiele." },
-      { name: "Status Badge Maker", category: "Kreativ", description: "Erstellt kleine SVG-Badges im Neon-Look." },
-      { name: "Contrast Checker", category: "Analyse", description: "Prüft Farbkontrast und Barrierefreiheit." },
-      { name: "Keyboard Heatmap", category: "Spaß", description: "Visualisiert Tippstatistiken spielerisch." },
-      { name: "Microcopy Cards", category: "Produktivität", description: "Bibliothek kurzer UI-Texte zum Kopieren." },
-      { name: "Bug Repro Steps", category: "Entwicklung", description: "Checkliste für klare Fehlerberichte." },
-      { name: "Release Notes Writer", category: "Produktivität", description: "Hilft strukturierte Release Notes zu skizzieren." },
-      { name: "Sprint Poker", category: "Spaß", description: "Virtuelle Schätzungskarten für Planning Poker." },
-      { name: "Mood Board Lite", category: "Kreativ", description: "Zieht Bilder und Farben in ein Grid für Ideen." },
-      { name: "Typography Pairer", category: "Kreativ", description: "Schlägt Font-Kombinationen und Größen vor." },
-      { name: "Grid Overlay", category: "Kreativ", description: "Legt ein Raster über Screenshots für Layouts." },
-      { name: "Journey Map", category: "Produktivität", description: "Skizziert Nutzerreisen Schritt für Schritt." },
-      { name: "Flowchart Blocks", category: "Kreativ", description: "Bausteine für schnelle Diagramm-Notizen." },
-      { name: "Changelog Digest", category: "Produktivität", description: "Kondensiert lange Änderungslisten." },
-      { name: "Unit Converter", category: "Analyse", description: "Umrechnungen für Längen, Gewichte und mehr." },
-      { name: "Time Zone Buddy", category: "Produktivität", description: "Zeigt passende Meeting-Zeiten weltweit." },
-      { name: "Accessibility Checklist", category: "Analyse", description: "Kurze WCAG-Checks für schnelle Audits." },
-      { name: "Feature Toggler", category: "Entwicklung", description: "Plant Feature-Flags und Rollout-Notizen." },
-      { name: "Cache Buster", category: "Entwicklung", description: "Generiert einzigartige Version-Hashes." },
-      { name: "Pixel Ruler", category: "Kreativ", description: "Virtuelles Lineal für Screenshots." },
-      { name: "Webhook Logger", category: "Entwicklung", description: "Hält Payload-Beispiele und Header fest." },
-      { name: "SQL Notebook", category: "Analyse", description: "Notiert SQL-Snippets mit erklärenden Kommentaren." },
-      { name: "Data Sampler", category: "Analyse", description: "Erzeugt kleine Demo-Datensätze fürs Testen." },
-      { name: "Diff Highlighter", category: "Entwicklung", description: "Markiert Unterschiede zwischen Textblöcken." },
-      { name: "Commit Message Coach", category: "Produktivität", description: "Strukturiert Commit-Botschaften nach Konvention." },
-      { name: "Roadmap Blocks", category: "Produktivität", description: "Stellt Feature-Bausteine in Quartalen dar." },
-      { name: "Kanban Mini", category: "Produktivität", description: "Minimalistisches Board für Ad-hoc-Tasks." },
-      { name: "OKR Snapshot", category: "Analyse", description: "Kurze Übersicht über Ziele und Key Results." },
-      { name: "Benchmark Cards", category: "Analyse", description: "Vergleicht Features oder Produkte nebeneinander." },
-      { name: "Latency Gauge", category: "Entwicklung", description: "Notiert Performance-Messpunkte und Budget." },
-      { name: "Packet Inspector", category: "Entwicklung", description: "Sammelt Request/Response-Notizen." },
-      { name: "Syntax Sandbox", category: "Entwicklung", description: "Testbereich für kleine Code-Snippets." },
-      { name: "CLI Cheats", category: "Entwicklung", description: "Kurze Befehlsreferenzen für Terminal-Workflows." },
-      { name: "API Status Board", category: "Analyse", description: "Mini-Monitor für Service-Health-Notizen." },
-      { name: "Whiteboard Grid", category: "Kreativ", description: "Kachelraster für schnelle Ideenskizzen." },
-      { name: "Storyboard Frames", category: "Kreativ", description: "Mini-Frames für Video- oder UI-Ideen." },
-      { name: "Name Generator", category: "Spaß", description: "Mix aus Silben für Produktnamen." },
-      { name: "Emoji Moodline", category: "Spaß", description: "Verlauf visueller Stimmungen mit Emojis." },
-      { name: "Habit Tracker", category: "Produktivität", description: "Einfacher Gewohnheitszähler für 7 Tage." },
-      { name: "Water Reminder", category: "Produktivität", description: "Zeigt Trinkintervalle über den Tag." },
-      { name: "Breathing Guide", category: "Spaß", description: "Geführte Atemzüge mit sanften Animationen." },
-      { name: "Soundboard", category: "Spaß", description: "Kleine Sammlung kurzer Klang-Buttons." },
+      { name: "JSON Formatter", category: "Entwicklung", description: "Formatiert JSON und zeigt Fehler klar an.", render: renderJsonFormatter },
+      { name: "Einheiten-Converter", category: "Analyse", description: "Länge, Gewicht und Temperatur konvertieren.", render: renderUnitConverter },
+      { name: "Gradient Crafter", category: "Kreativ", description: "Baut CSS-Verläufe mit Live-Vorschau.", render: renderGradientCrafter },
+      { name: "Markdown Vorschau", category: "Entwicklung", description: "Markdown tippen und sofort als HTML sehen.", render: renderMarkdownPreviewer },
+      { name: "Base64 Tool", category: "Produktivität", description: "Texte schnell encodieren oder decodieren.", render: renderBase64Tool },
+      { name: "Zeitzonen-Planer", category: "Analyse", description: "Zeiten parallel in mehreren Zonen prüfen.", render: renderTimezonePlanner },
+      { name: "Binär Coder", category: "Entwicklung", description: "Text und Bits sicher umwandeln.", render: renderBinaryCoder },
+      { name: "Taschenrechner", category: "Analyse", description: "Ausdrücke mit Operatoren und Potenzen lösen.", render: renderCalculator },
+      { name: "Währungsrechner", category: "Produktivität", description: "Beträge in wichtige Währungen spiegeln.", render: renderCurrencyConverter },
+      { name: "Farb-Analysator", category: "Kreativ", description: "HEX, RGB und HSL auf einen Blick.", render: renderColorAnalyzer },
+      { name: "Passwort Generator", category: "Produktivität", description: "Starke Passwörter mit Optionen bauen.", render: renderPasswordGenerator },
+      { name: "Wortzähler", category: "Produktivität", description: "Wörter, Sätze und Zeilen zählen.", render: renderWordCounter },
+      { name: "Regex Tester", category: "Entwicklung", description: "Regex live gegen Text prüfen.", render: renderRegexTester },
+      { name: "URL Tool", category: "Produktivität", description: "URLs oder Texte encodieren/decodieren.", render: renderUrlTool },
+      { name: "Case Converter", category: "Produktivität", description: "Zwischen Upper, snake, kebab und mehr wechseln.", render: renderCaseConverter },
+      { name: "Diff Checker", category: "Entwicklung", description: "Zeilenweise Unterschiede aufdecken.", render: renderDiffChecker },
+      { name: "BMI Rechner", category: "Analyse", description: "BMI inkl. Klassifikation berechnen.", render: renderBmi },
+      { name: "Datums-Differenz", category: "Analyse", description: "Tage und Wochen zwischen zwei Daten.", render: renderDateDiff },
+      { name: "Stoppuhr", category: "Spaß", description: "Messbare Zeit mit Start/Stop.", render: renderStopwatch },
+      { name: "CSV Viewer", category: "Entwicklung", description: "CSV schnell als Tabelle prüfen.", render: renderCsvViewer },
+      { name: "Zahlen-Analyzer", category: "Analyse", description: "Min, Max, Mittel und Median finden.", render: renderNumberAnalyzer },
+      { name: "Markdown Checklist", category: "Produktivität", description: "Checkboxen aus Markdown prüfen.", render: renderMarkdownChecklist },
     ];
 
     const renderTools = () => {
@@ -929,18 +2237,38 @@
           <h3>${tool.name}</h3>
           <p>${tool.description}</p>
         `;
+        const startButton = createButton("Tool öffnen", () => openTool(tool));
+        card.appendChild(startButton);
         toolGrid.appendChild(card);
       });
 
-      toolCount.textContent = `${tools.length}+`;
+      toolCount.textContent = `${tools.length}`;
       toolboxTag.textContent = filtered.length === tools.length
-        ? "✨ 50+ Tools sofort verfügbar"
+        ? "✨ Alle Tools bereit"
         : `🔍 ${filtered.length} Treffer`;
     };
 
-    toolSearch.addEventListener("input", renderTools);
-    toolFilter.addEventListener("change", renderTools);
+    let renderScheduled = false;
+    const scheduleRenderTools = () => {
+      if (renderScheduled) return;
+      renderScheduled = true;
+      requestAnimationFrame(() => {
+        renderScheduled = false;
+        renderTools();
+      });
+    };
+
+    const openTool = (tool) => {
+      toolPreviewTitle.textContent = tool.name;
+      toolPreviewDesc.textContent = tool.description;
+      toolWorkspace.innerHTML = "";
+      toolWorkspace.appendChild(tool.render());
+    };
+
+    toolSearch.addEventListener("input", scheduleRenderTools);
+    toolFilter.addEventListener("change", scheduleRenderTools);
     renderTools();
+    openTool(tools[0]);
   </script>
 </body>
 </html>

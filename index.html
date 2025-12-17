@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ENTI_ENGINE 4.1 — Single-File HTML</title>
+
+  <!-- Tailwind (CDN, for quick preview) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- Lucide icons (non-React) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root { color-scheme: dark; }
+    .font-sans { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    .font-mono { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+
+    @font-face {
+      font-family: 'Minecraft';
+      src: url('https://fonts.cdnfonts.com/s/14896/Minecraft.woff') format('woff');
+      font-display: swap;
+    }
+    .font-mc { font-family: 'Minecraft', sans-serif; image-rendering: pixelated; }
+
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 999px; }
+
+    .enchantment-glint { position: relative; overflow: hidden; }
+    .enchantment-glint::after{
+      content:''; position:absolute; inset:-100%;
+      background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.10) 50%, transparent 60%);
+      animation: glint 4s infinite linear; pointer-events:none;
+    }
+    @keyframes glint { from { transform: translate(-30%,-30%) } to { transform: translate(30%,30%) } }
+
+    .cyber-grid{
+      background-image: linear-gradient(rgba(255,0,255,0.05) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,0,255,0.05) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .void-particles{
+      background: radial-gradient(circle at center, rgba(99,102,241,0.06) 0%, transparent 70%);
+    }
+
+    i[data-lucide] svg { width: 1.75rem; height: 1.75rem; }
+  </style>
+</head>
+
+<body class="min-h-screen overflow-x-hidden text-white">
+  <div id="bgBackdrop" class="fixed inset-0 pointer-events-none"></div>
+
+  <nav id="topNav" class="fixed top-0 w-full z-[100] px-6 md:px-8 py-4 md:py-5 flex justify-between items-center bg-black/40 backdrop-blur-2xl border-b border-white/5">
+    <div class="flex items-center gap-5">
+      <div id="logoBox" class="w-14 h-14 flex items-center justify-center bg-gradient-to-tr from-violet-600 to-indigo-600 rounded-2xl">
+        <i data-lucide="skull" class="text-white"></i>
+      </div>
+
+      <div>
+        <h1 class="text-xl md:text-2xl font-black tracking-tighter uppercase leading-none">
+          ENTI_ENGINE <span id="accentText" class="text-violet-500">4.1</span>
+        </h1>
+        <div id="hearts" class="flex gap-1 mt-2"></div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button id="settingsBtn" class="p-3 md:p-4 bg-white/5 rounded-2xl border border-white/10 hover:scale-105 active:scale-95 transition">
+        <i data-lucide="settings"></i>
+      </button>
+    </div>
+  </nav>
+
+  <main id="main" class="max-w-[1500px] mx-auto px-4 md:px-8 pt-28 md:pt-36 pb-32 transition-all">
+    <section id="terminalPanel" class="overflow-hidden flex flex-col h-80 mb-10 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem]">
+      <header id="terminalHeader" class="px-6 py-3 flex justify-between items-center border-b border-white/5 bg-white/5">
+        <div class="flex items-center gap-3 text-[10px] font-black tracking-[0.3em] opacity-50">
+          <i data-lucide="terminal"></i>
+          <span>KERNEL_STREAM_ACTIVE</span>
+        </div>
+        <div class="flex gap-2">
+          <div class="w-3 h-3 rounded-full bg-red-500/50"></div>
+          <div class="w-3 h-3 rounded-full bg-yellow-500/50"></div>
+          <div class="w-3 h-3 rounded-full bg-green-500/50"></div>
+        </div>
+      </header>
+
+      <div id="terminalBody" class="flex-grow p-6 md:p-8 overflow-y-auto custom-scrollbar font-mono text-sm space-y-3"></div>
+
+      <form id="terminalForm" class="p-5 md:p-6 flex items-center gap-3 bg-black/40">
+        <span id="hashAccent" class="font-black text-xl text-violet-500">#</span>
+        <input id="terminalInput" class="flex-grow bg-transparent outline-none font-mono text-base md:text-lg placeholder:opacity-30"
+               placeholder="Engine Befehl... (help, theme <name>, stats, sudo ai <prompt>, clear)" />
+      </form>
+    </section>
+
+    <section id="workspacePanel" class="bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] overflow-hidden">
+      <header id="workspaceHeader" class="px-8 md:px-10 py-5 md:py-6 border-b border-white/5 bg-white/5 flex justify-between items-center">
+        <div class="flex items-center gap-4">
+          <div id="syncDot" class="w-3 h-3 rounded-full bg-violet-500 animate-ping"></div>
+          <span class="text-[10px] font-black uppercase tracking-widest opacity-50">Forge_Buffer_Sync_OK</span>
+        </div>
+
+        <div class="flex gap-8 md:gap-12">
+          <div class="flex flex-col items-end">
+            <span class="text-[9px] opacity-40">WORDS</span>
+            <span id="words" class="font-black text-2xl tracking-tighter">0</span>
+          </div>
+          <div class="flex flex-col items-end">
+            <span class="text-[9px] opacity-40">RANK_XP</span>
+            <span id="xp" class="font-black text-2xl tracking-tighter text-violet-500">0</span>
+          </div>
+        </div>
+      </header>
+
+      <textarea id="editor"
+        class="w-full min-h-[520px] md:min-h-[650px] p-10 md:p-16 lg:p-24 text-xl md:text-3xl lg:text-4xl font-light outline-none bg-transparent transition-all leading-relaxed"
+        placeholder="Beginne hier mit deinem Text... Die Omni-Forge wartet."></textarea>
+
+      <div class="p-8 md:p-12 flex justify-center">
+        <div id="hotbar" class="flex gap-3 p-4 bg-black/60 rounded-[2.5rem] border border-white/10">
+          <button class="toolBtn w-16 h-16 md:w-20 md:h-20 flex items-center justify-center bg-white/5 rounded-2xl hover:bg-white/10 transition"
+                  data-action="translate" title="translate">
+            <i data-lucide="globe-2" class="text-blue-500"></i>
+          </button>
+          <button class="toolBtn w-16 h-16 md:w-20 md:h-20 flex items-center justify-center bg-white/5 rounded-2xl hover:bg-white/10 transition enchantment-glint"
+                  data-action="polish" title="polish">
+            <i data-lucide="sparkles" class="text-violet-400"></i>
+          </button>
+          <button class="toolBtn w-16 h-16 md:w-20 md:h-20 flex items-center justify-center bg-white/5 rounded-2xl hover:bg-white/10 transition"
+                  data-action="fix" title="fix">
+            <i data-lucide="hammer" class="text-emerald-500"></i>
+          </button>
+          <button class="toolBtn w-16 h-16 md:w-20 md:h-20 flex items-center justify-center bg-white/5 rounded-2xl hover:bg-white/10 transition"
+                  data-action="power" title="power">
+            <i data-lucide="zap" class="text-amber-500"></i>
+          </button>
+          <button class="toolBtn w-16 h-16 md:w-20 md:h-20 flex items-center justify-center bg-white/5 rounded-2xl hover:bg-white/10 transition"
+                  data-action="clearEditor" title="clear">
+            <i data-lucide="trash-2" class="text-rose-500"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="modal" class="fixed inset-0 z-[250] hidden bg-black/95 backdrop-blur-3xl items-center justify-center p-5 md:p-8">
+    <div id="modalCard" class="w-full max-w-6xl p-8 md:p-16 relative overflow-hidden bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem]">
+      <div class="flex justify-between items-center mb-10 md:mb-16">
+        <div>
+          <h2 class="text-4xl md:text-6xl font-black tracking-tighter italic leading-none mb-2">SYSTEM_CORE</h2>
+          <p class="opacity-40 text-sm tracking-widest uppercase">Select UI Protocol for Hyper-Drive</p>
+        </div>
+        <button id="closeModal" class="p-3 md:p-4 hover:rotate-90 transition-transform duration-500">
+          <i data-lucide="x" class="w-10 h-10"></i>
+        </button>
+      </div>
+
+      <div id="themeGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5 md:gap-6"></div>
+    </div>
+  </div>
+
+  <footer id="footer" class="fixed bottom-0 w-full z-[100] px-6 md:px-12 py-4 md:py-5 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.35em] bg-black/90 border-t border-white/5 text-white/40">
+    <div class="flex gap-6 md:gap-10 items-center">
+      <div class="flex items-center gap-3">
+        <div id="statusDot" class="w-2.5 h-2.5 rounded-full bg-violet-500 animate-pulse shadow-[0_0_10px_currentColor]"></div>
+        ENGINE_STATUS_4.1_STABLE
+      </div>
+      <div class="hidden sm:flex items-center gap-3 opacity-60 hover:opacity-100 transition-opacity cursor-default">
+        <i data-lucide="waves"></i>
+        <span>CURRENT_THEME: <span id="themeName">NEBULA PRIME</span></span>
+      </div>
+    </div>
+    <div class="flex gap-6 md:gap-12 items-center">
+      <div class="hidden lg:flex gap-6 opacity-30">
+        <span>LATENCY: 4MS</span>
+        <span>BUFFER: CLEAR</span>
+      </div>
+      <div id="secureBadge" class="px-4 md:px-5 py-2 rounded-full border border-violet-500/30 text-violet-400 bg-violet-500/5">
+        SECURE_ENVIRONMENT
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const state = {
+      theme: 'nebula',
+      isLoading: false,
+      editorText: '',
+      terminalHistory: [
+        { type: 'sys', text: 'HYPER_DRIVE_INIT: v4.1.0-STABLE' },
+        { type: 'sys', text: 'KERNEL_STATUS: OPTIMIZED' },
+        { type: 'info', text: 'Bugfixes angewendet. SUDO_AI ist bereit.' }
+      ]
+    };
+
+    const themeSpecs = {
+      nebula: { name:'NEBULA PRIME', bgClass:'bg-[#050505]', panelClass:'bg-white/5 backdrop-blur-3xl border-white/10 rounded-[3rem]', accent:'text-violet-500', font:'font-sans' },
+      minecraft:{ name:'GOD CRAFT', bgClass:'bg-[#313131]', panelClass:'bg-[#c6c6c6] border-t-white border-l-white border-b-[#555] border-r-[#555] border-[6px] shadow-[8px_8px_0px_#000] rounded-none', accent:'text-green-600', font:'font-mc' },
+      kernel:{ name:'KERNEL SYSTEM', bgClass:'bg-black', panelClass:'bg-black border border-[#00ff41]/50 rounded-none shadow-[0_0_20px_rgba(0,255,65,0.1)]', accent:'text-[#00ff41]', font:'font-mono' },
+      cyber:{ name:'RETRO_PINK', bgClass:'bg-[#1a001a]', panelClass:'bg-black/80 border-2 border-pink-500 rounded-none shadow-[5px_5px_0px_#ff00ff]', accent:'text-pink-500', font:'font-sans' },
+      void:{ name:'VOID_WALKER', bgClass:'bg-[#020617]', panelClass:'bg-indigo-950/20 backdrop-blur-md border border-indigo-500/30 rounded-3xl shadow-[0_0_40px_rgba(99,102,241,0.1)]', accent:'text-indigo-400', font:'font-sans' }
+    };
+
+    const qs = (s) => document.querySelector(s);
+    const el = (tag, cls='') => { const n = document.createElement(tag); if (cls) n.className = cls; return n; };
+
+    function nowHHMM(){ return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
+    function computeMetrics(text){
+      const trimmed=(text||'').trim();
+      const words=trimmed?trimmed.split(/\s+/).length:0;
+      const chars=(text||'').length;
+      return { words, chars, hearts:Math.min(10,Math.max(0,Math.floor(words/12))), xp:words*5+chars };
+    }
+    function pushTerminal(line){
+      state.terminalHistory.push({...line, ts: nowHHMM()});
+      if(state.terminalHistory.length>300) state.terminalHistory.splice(0,50);
+    }
+
+    function sudoAI(prompt){
+      state.isLoading=true;
+      pushTerminal({type:'sys', text:`SUDO_AI_REQUEST: "${prompt}"`});
+      render();
+      setTimeout(()=>{
+        const p=(prompt||'').toLowerCase();
+        const current=qs('#editor').value||'';
+        if(p.includes('schreib')||p.includes('änder')||p.includes('übersetz')){
+          const transformed = p.includes('übersetz') ? ("[DEMO-ÜBERSETZUNG]\n"+current)
+                           : (p.includes('polish')||p.includes('optimiere')) ? current.replace(/\s+/g,' ').trim()
+                           : current;
+          qs('#editor').value=transformed;
+          state.editorText=transformed;
+          pushTerminal({type:'info', text:'SUDO_SUCCESS: Editor-Inhalt überschrieben.'});
+        } else {
+          pushTerminal({type:'ai', text:`AI: (Demo) Ich habe "${prompt}" verstanden. Gib mir einen API-Key, dann mache ich es richtig.`});
+        }
+        state.isLoading=false;
+        render();
+      }, 550);
+    }
+
+    function renderHearts(m){
+      const c=qs('#hearts'); c.innerHTML='';
+      for(let i=0;i<10;i++){
+        const d=el('div');
+        const filled=i<m.hearts;
+        if(state.theme==='kernel') d.className='w-3.5 h-3.5 rounded-sm '+(filled?'bg-[#00ff41]':'bg-zinc-800/40');
+        else if(state.theme==='void') d.className='w-3.5 h-3.5 rounded-full '+(filled?'bg-indigo-400':'bg-zinc-800/40');
+        else d.className='w-3.5 h-3.5 rounded-full '+(filled?'bg-red-600':'bg-zinc-800/40');
+        c.appendChild(d);
+      }
+    }
+
+    function renderTerminal(){
+      const body=qs('#terminalBody'); body.innerHTML='';
+      for(const line of state.terminalHistory){
+        const row=el('div','flex gap-4 p-3 rounded-xl transition hover:bg-white/5');
+        let cls='text-zinc-500';
+        if(line.type==='ai') cls='bg-violet-500/10 text-violet-300 border border-violet-500/20';
+        if(line.type==='err') cls='text-red-400 bg-red-500/5';
+        if(line.type==='user') cls=(state.theme==='kernel')?'text-[#00ff41]':'text-blue-400';
+        if(line.type==='info') cls='text-zinc-200';
+        row.className += ' '+cls;
+
+        const ts=el('span','opacity-20 shrink-0 select-none'); ts.textContent=`[${line.ts||nowHHMM()}]`;
+        const txt=el('span','whitespace-pre-wrap leading-relaxed'); txt.textContent=line.text;
+        row.appendChild(ts); row.appendChild(txt); body.appendChild(row);
+      }
+      if(state.isLoading){
+        const loading=el('div','animate-pulse font-black px-14 tracking-widest '+themeSpecs[state.theme].accent);
+        loading.textContent='EXECUTING_CORE_QUERY...'; body.appendChild(loading);
+      }
+      body.scrollTop=body.scrollHeight;
+    }
+
+    function applyTheme(){
+      const s=themeSpecs[state.theme];
+      document.body.className=`min-h-screen overflow-x-hidden text-white ${s.bgClass} ${s.font}`;
+
+      const backdrop=qs('#bgBackdrop');
+      backdrop.className='fixed inset-0 pointer-events-none';
+      if(state.theme==='cyber') backdrop.classList.add('cyber-grid');
+      if(state.theme==='void') backdrop.classList.add('void-particles','animate-pulse');
+      if(state.theme==='kernel') backdrop.classList.add('bg-[radial-gradient(circle_at_50%_50%,rgba(0,255,65,0.03),transparent)]');
+
+      qs('#terminalPanel').className=`overflow-hidden flex flex-col ${state.theme==='kernel'?'h-[70vh] mb-10':'h-80 mb-10'} ${s.panelClass}`;
+      qs('#workspacePanel').className=`overflow-hidden ${s.panelClass}`;
+
+      qs('#accentText').className=s.accent;
+      qs('#hashAccent').className=`font-black text-xl ${s.accent}`;
+      qs('#xp').className=`font-black text-2xl tracking-tighter ${s.accent}`;
+      qs('#statusDot').className=`w-2.5 h-2.5 rounded-full animate-pulse shadow-[0_0_10px_currentColor] ${s.accent} bg-current`;
+
+      qs('#secureBadge').className =
+        (state.theme==='minecraft') ? 'px-5 py-2 rounded-full border bg-white border-black text-black'
+        : (state.theme==='void') ? 'px-5 py-2 rounded-full border border-indigo-400/50 bg-indigo-500/10 text-indigo-300'
+        : 'px-5 py-2 rounded-full border border-violet-500/30 text-violet-400 bg-violet-500/5';
+
+      const nav=qs('#topNav');
+      if(state.theme==='minecraft'){
+        nav.className='fixed top-0 w-full z-[100] px-8 py-5 flex justify-between items-center bg-[#c6c6c6] border-b-[6px] border-b-[#555] text-black';
+        qs('#settingsBtn').className='p-4 bg-[#bebebe] border-[4px] border-black text-black hover:scale-105 active:scale-95 transition';
+        qs('#terminalHeader').className='px-6 py-3 flex justify-between items-center border-b bg-[#bebebe] border-black';
+        qs('#terminalForm').className='p-6 flex items-center gap-4 bg-[#8b8b8b]';
+        qs('#workspaceHeader').className='px-10 py-6 border-b flex justify-between items-center bg-[#bebebe] border-black';
+        qs('#hotbar').className='flex gap-4 p-4 bg-[#1a1a1a] border-[4px] border-[#555]';
+        qs('#editor').className='w-full min-h-[520px] md:min-h-[650px] p-10 md:p-16 lg:p-24 text-xl md:text-3xl lg:text-4xl font-light outline-none bg-transparent transition-all leading-relaxed text-black font-mc';
+        qs('#footer').className='fixed bottom-0 w-full z-[100] px-12 py-5 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.4em] bg-[#c6c6c6] text-black border-t-[6px] border-t-white';
+      } else {
+        nav.className='fixed top-0 w-full z-[100] px-8 py-5 flex justify-between items-center bg-black/40 backdrop-blur-2xl border-b border-white/5';
+        qs('#settingsBtn').className =
+          (state.theme==='cyber') ? 'p-4 bg-pink-600 border-2 border-white hover:scale-105 active:scale-95 transition'
+          : (state.theme==='void') ? 'p-4 bg-indigo-800/40 border border-indigo-400/30 hover:scale-105 active:scale-95 transition rounded-2xl'
+          : 'p-4 bg-white/5 rounded-2xl border border-white/10 hover:scale-105 active:scale-95 transition';
+        qs('#terminalHeader').className='px-6 py-3 flex justify-between items-center border-b bg-white/5 border-white/5';
+        qs('#terminalForm').className='p-6 flex items-center gap-4 bg-black/40';
+        qs('#workspaceHeader').className='px-10 py-6 border-b flex justify-between items-center bg-white/5 border-white/5';
+        qs('#hotbar').className =
+          (state.theme==='cyber') ? 'flex gap-4 p-4 bg-pink-900/20 border-2 border-pink-500'
+          : (state.theme==='void') ? 'flex gap-4 p-4 bg-indigo-950/40 border border-indigo-400/40 rounded-[2rem]'
+          : 'flex gap-4 p-4 bg-black/60 rounded-[2.5rem] border border-white/10';
+        qs('#editor').className='w-full min-h-[520px] md:min-h-[650px] p-10 md:p-16 lg:p-24 text-xl md:text-3xl lg:text-4xl font-light outline-none bg-transparent transition-all leading-relaxed text-white';
+        qs('#footer').className =
+          (state.theme==='void') ? 'fixed bottom-0 w-full z-[100] px-12 py-5 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.4em] bg-[#020617] text-indigo-400 border-t border-indigo-500/20'
+          : 'fixed bottom-0 w-full z-[100] px-12 py-5 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.4em] bg-black/90 border-t border-white/5 text-white/40';
+      }
+
+      const logo=qs('#logoBox');
+      if(state.theme==='minecraft') logo.className='w-14 h-14 flex items-center justify-center bg-[#8b8b8b] border-[4px] border-black shadow-[4px_4px_0px_rgba(0,0,0,0.5)]';
+      else if(state.theme==='cyber') logo.className='w-14 h-14 flex items-center justify-center bg-pink-600 border-2 border-white shadow-[4px_4px_0px_#ff00ff]';
+      else if(state.theme==='void') logo.className='w-14 h-14 flex items-center justify-center bg-indigo-900 border border-indigo-400/50 shadow-[0_0_20px_rgba(99,102,241,0.5)] rounded-2xl';
+      else logo.className='w-14 h-14 flex items-center justify-center bg-gradient-to-tr from-violet-600 to-indigo-600 rounded-2xl';
+
+      qs('#themeName').textContent=s.name;
+      qs('#syncDot').className='w-3 h-3 rounded-full animate-ping '+(state.theme==='minecraft'?'bg-green-600':state.theme==='void'?'bg-indigo-400':'bg-violet-500');
+    }
+
+    function render(){
+      const m=computeMetrics(qs('#editor').value||'');
+      qs('#words').textContent=m.words;
+      qs('#xp').textContent=m.xp;
+      renderHearts(m);
+      applyTheme();
+      renderTerminal();
+      if(window.lucide) window.lucide.createIcons();
+    }
+
+    function executeCommand(cmdRaw){
+      const cmd=(cmdRaw||'').trim(); if(!cmd) return;
+      pushTerminal({type:'user', text:`root@enti:~$ ${cmd}`});
+      const lower=cmd.toLowerCase();
+      if(lower==='help') pushTerminal({type:'info', text:"Commands: help | clear | stats | theme <nebula|minecraft|kernel|cyber|void> | sudo ai <prompt>"});
+      else if(lower==='clear') state.terminalHistory=[];
+      else if(lower.startsWith('sudo ai ')) sudoAI(cmd.substring(8));
+      else if(lower.startsWith('theme ')){
+        const t=lower.split(/\s+/)[1];
+        if(themeSpecs[t]){ state.theme=t; pushTerminal({type:'sys', text:`THEME_SYNC: Modus auf ${t.toUpperCase()} gestellt.`}); }
+        else pushTerminal({type:'err', text:`THEME_ERROR: '${t}' existiert nicht.`});
+      } else if(lower==='stats'){
+        const m=computeMetrics(qs('#editor').value||'');
+        pushTerminal({type:'info', text:`ENGINE_STATS: Words: ${m.words} | Chars: ${m.chars} | XP: ${m.xp}`});
+      } else pushTerminal({type:'err', text:"COMMAND_UNKNOWN: Versuche 'help' oder 'sudo ai <...>'."});
+      render();
+    }
+
+    function buildThemeGrid(){
+      const grid=qs('#themeGrid'); grid.innerHTML='';
+      Object.keys(themeSpecs).forEach(key=>{
+        const spec=themeSpecs[key];
+        const btn=el('button');
+        btn.className=`p-8 md:p-10 text-left border-2 transition-all group rounded-3xl ${state.theme===key?'border-violet-500 bg-violet-500/10':'border-white/5 hover:border-white/20'} ${spec.panelClass}`;
+        btn.innerHTML=`<div class="text-sm font-black mb-6 tracking-tighter group-hover:scale-110 transition-transform ${spec.accent}">${spec.name}</div>
+                       <div class="opacity-20 text-[10px] font-bold uppercase tracking-widest">Interface Switch</div>`;
+        btn.addEventListener('click',()=>{ state.theme=key; closeModal(); render(); });
+        grid.appendChild(btn);
+      });
+    }
+    function openModal(){ buildThemeGrid(); qs('#modal').classList.remove('hidden'); qs('#modal').classList.add('flex'); render(); }
+    function closeModal(){ qs('#modal').classList.add('hidden'); qs('#modal').classList.remove('flex'); }
+
+    qs('#settingsBtn').addEventListener('click', openModal);
+    qs('#closeModal').addEventListener('click', closeModal);
+    qs('#modal').addEventListener('click', (e)=>{ if(e.target.id==='modal') closeModal(); });
+    qs('#terminalForm').addEventListener('submit',(e)=>{ e.preventDefault(); const inp=qs('#terminalInput'); const cmd=inp.value; inp.value=''; executeCommand(cmd); });
+    qs('#editor').addEventListener('input',(e)=>{ state.editorText=e.target.value||''; render(); });
+    document.querySelectorAll('.toolBtn').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const action=btn.getAttribute('data-action');
+        if(action==='clearEditor'){ qs('#editor').value=''; state.editorText=''; pushTerminal({type:'sys', text:'EDITOR_CLEAR: Buffer geleert.'}); render(); return; }
+        sudoAI(`Optimiere den Text: Fokus auf ${action}`);
+      });
+    });
+
+    qs('#editor').value='';
+    render();
+  </script>
+</body>
+</html>

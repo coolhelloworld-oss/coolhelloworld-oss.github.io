@@ -221,6 +221,7 @@
       isLoading: false,
       editorText: '',
       apiKey: '',
+      provider: 'openai',
       terminalHistory: [
         { type: 'sys', text: 'HYPER_DRIVE_INIT: v4.1.0-STABLE' },
         { type: 'sys', text: 'KERNEL_STATUS: OPTIMIZED' },
@@ -252,6 +253,10 @@
         const saved=localStorage.getItem('enti_api_key');
         if(saved){ state.apiKey=saved; pushTerminal({type:'info', text:`API_KEY_LOADED: ${maskKey(saved)}`}); }
       }catch(e){ pushTerminal({type:'err', text:'LOCAL_STORAGE_ERROR: Kann Schlüssel nicht lesen.'}); }
+      try{
+        const p=localStorage.getItem('enti_api_provider');
+        if(p==='openrouter' || p==='openai'){ state.provider=p; pushTerminal({type:'info', text:`PROVIDER_SET: ${p.toUpperCase()}`}); }
+      }catch(e){ pushTerminal({type:'err', text:'LOCAL_STORAGE_ERROR: Provider konnte nicht gelesen werden.'}); }
     };
 
     function nowHHMM(){ return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
@@ -284,18 +289,25 @@
         return;
       }
       state.isLoading=true;
-      pushTerminal({type:'sys', text:`SUDO_AI_REQUEST: "${prompt}"`});
+      pushTerminal({type:'sys', text:`SUDO_AI_REQUEST(${state.provider.toUpperCase()}): "${prompt}"`});
       render();
       const current=qs('#editor').value||'';
       try{
-        const res=await fetch('https://api.openai.com/v1/chat/completions',{
+        const provider=state.provider||'openai';
+        const endpoint = (provider==='openrouter') ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
+        const headers = {
+          'Content-Type':'application/json',
+          'Authorization':`Bearer ${state.apiKey}`
+        };
+        if(provider==='openrouter'){
+          headers['HTTP-Referer']= (typeof location!=='undefined' && location.origin) ? location.origin : 'http://localhost';
+          headers['X-Title']='ENTI_ENGINE';
+        }
+        const res=await fetch(endpoint,{
           method:'POST',
-          headers:{
-            'Content-Type':'application/json',
-            'Authorization':`Bearer ${state.apiKey}`
-          },
+          headers,
           body:JSON.stringify({
-            model:'gpt-4o-mini',
+            model: provider==='openrouter' ? 'openai/gpt-4o-mini' : 'gpt-4o-mini',
             temperature:0.35,
             messages:[
               { role:'system', content:'Du bist ENTI_ENGINE, ein präziser Schreib- und Übersetzungsassistent. Antworte kurz und in klaren Sätzen.' },
@@ -510,9 +522,17 @@
       const cmd=(cmdRaw||'').trim(); if(!cmd) return;
       pushTerminal({type:'user', text:`root@enti:~$ ${cmd}`});
       const lower=cmd.toLowerCase();
-      if(lower==='help') pushTerminal({type:'info', text:"Commands: help | clear | stats | theme <nebula|minecraft|kernel|cyber|void|aurora|solar|noir|lagoon|dusk|mech|sand|neon> | sudo ai <prompt>"});
+      if(lower==='help') pushTerminal({type:'info', text:"Commands: help | clear | stats | provider <openai|openrouter> | theme <nebula|minecraft|kernel|cyber|void|aurora|solar|noir|lagoon|dusk|mech|sand|neon> | sudo ai <prompt>"});
       else if(lower==='clear') state.terminalHistory=[];
       else if(lower.startsWith('sudo ai ')) sudoAI(cmd.substring(8));
+      else if(lower.startsWith('provider ')){
+        const p=lower.split(/\s+/)[1];
+        if(p==='openai'||p==='openrouter'){
+          state.provider=p;
+          try{ localStorage.setItem('enti_api_provider', p); }catch(err){ pushTerminal({type:'err', text:'LOCAL_STORAGE_ERROR: Provider konnte nicht gespeichert werden.'}); }
+          pushTerminal({type:'sys', text:`PROVIDER_SET: ${p.toUpperCase()}`});
+        } else pushTerminal({type:'err', text:"PROVIDER_ERROR: Nutze 'openai' oder 'openrouter'."});
+      }
       else if(lower.startsWith('theme ')){
         const t=lower.split(/\s+/)[1];
         if(themeSpecs[t]){ state.theme=t; pushTerminal({type:'sys', text:`THEME_SYNC: Modus auf ${t.toUpperCase()} gestellt.`}); }

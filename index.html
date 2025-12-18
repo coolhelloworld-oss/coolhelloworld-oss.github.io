@@ -234,7 +234,14 @@
       kernel:{ name:'KERNEL SYSTEM', bgClass:'bg-black', panelClass:'bg-black border border-[#00ff41]/50 rounded-none shadow-[0_0_20px_rgba(0,255,65,0.1)]', accent:'text-[#00ff41]', font:'font-mono' },
       cyber:{ name:'RETRO_PINK', bgClass:'bg-[#1a001a]', panelClass:'bg-black/80 border-2 border-pink-500 rounded-none shadow-[5px_5px_0px_#ff00ff]', accent:'text-pink-500', font:'font-sans' },
       void:{ name:'VOID_WALKER', bgClass:'bg-[#020617]', panelClass:'bg-indigo-950/20 backdrop-blur-md border border-indigo-500/30 rounded-3xl shadow-[0_0_40px_rgba(99,102,241,0.1)]', accent:'text-indigo-400', font:'font-sans' },
-      aurora:{ name:'AURORA VEIL', bgClass:'bg-gradient-to-br from-slate-950 via-indigo-950 to-emerald-900', panelClass:'bg-white/5 backdrop-blur-2xl border border-emerald-400/20 rounded-[2.5rem] shadow-[0_0_30px_rgba(16,185,129,0.15)]', accent:'text-emerald-300', font:'font-sans' }
+      aurora:{ name:'AURORA VEIL', bgClass:'bg-gradient-to-br from-slate-950 via-indigo-950 to-emerald-900', panelClass:'bg-white/5 backdrop-blur-2xl border border-emerald-400/20 rounded-[2.5rem] shadow-[0_0_30px_rgba(16,185,129,0.15)]', accent:'text-emerald-300', font:'font-sans' },
+      solar: { name:'SOLAR FLARE', bgClass:'bg-gradient-to-br from-amber-900 via-orange-900 to-black', panelClass:'bg-black/50 border border-amber-400/40 rounded-[1.75rem] shadow-[0_0_40px_rgba(251,191,36,0.25)]', accent:'text-amber-300', font:'font-sans' },
+      noir: { name:'NOIR GRID', bgClass:'bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.05),transparent_40%),radial-gradient(circle_at_80%_30%,rgba(255,255,255,0.05),transparent_45%),#0a0a0a]', panelClass:'bg-[#111]/90 border border-white/10 rounded-xl shadow-[0_15px_45px_rgba(0,0,0,0.4)]', accent:'text-white', font:'font-mono' },
+      lagoon: { name:'LAGOON HAZE', bgClass:'bg-gradient-to-br from-cyan-900 via-slate-900 to-emerald-950', panelClass:'bg-white/5 backdrop-blur-2xl border border-cyan-300/30 rounded-[2rem] shadow-[0_0_40px_rgba(34,211,238,0.2)]', accent:'text-cyan-200', font:'font-sans' },
+      dusk: { name:'DUSK BLOOM', bgClass:'bg-gradient-to-br from-[#1f1029] via-[#2d1630] to-[#120c1f]', panelClass:'bg-[#1b0f26]/80 border border-purple-400/20 rounded-[2rem] shadow-[0_0_35px_rgba(168,85,247,0.2)]', accent:'text-purple-300', font:'font-sans' },
+      mech: { name:'MECH FRAME', bgClass:'bg-gradient-to-br from-gray-950 via-gray-900 to-[#1a1f2b]', panelClass:'bg-[#0f1624]/90 border border-slate-500/40 rounded-lg shadow-[0_0_30px_rgba(148,163,184,0.15)]', accent:'text-slate-200', font:'font-mono' },
+      sand: { name:'SANDSTONE', bgClass:'bg-gradient-to-br from-[#f0d9b5] via-[#e4c29b] to-[#c59a6d]', panelClass:'bg-white/60 border border-amber-900/30 rounded-[2rem] shadow-[0_15px_45px_rgba(124,92,45,0.35)] text-black', accent:'text-amber-900', font:'font-sans' },
+      neon: { name:'NEON WIRE', bgClass:'bg-[#050611]', panelClass:'bg-[#0b0d1a]/90 border border-emerald-400/30 rounded-[1.5rem] shadow-[0_0_45px_rgba(16,185,129,0.25)]', accent:'text-emerald-300', font:'font-mono' }
     };
 
     const qs = (s) => document.querySelector(s);
@@ -351,9 +358,11 @@
 
       const backdrop=qs('#bgBackdrop');
       backdrop.className='fixed inset-0 pointer-events-none';
-      if(state.theme==='cyber') backdrop.classList.add('cyber-grid');
-      if(state.theme==='void') backdrop.classList.add('void-particles','animate-pulse');
-      if(state.theme==='kernel') backdrop.classList.add('bg-[radial-gradient(circle_at_50%_50%,rgba(0,255,65,0.03),transparent)]');
+      if(state.theme==='cyber' || state.theme==='neon') backdrop.classList.add('cyber-grid');
+      if(state.theme==='void' || state.theme==='lagoon') backdrop.classList.add('void-particles','animate-pulse');
+      if(state.theme==='kernel' || state.theme==='noir') backdrop.classList.add('bg-[radial-gradient(circle_at_50%_50%,rgba(0,255,65,0.03),transparent)]');
+      if(state.theme==='solar') backdrop.classList.add('bg-[radial-gradient(circle_at_70%_20%,rgba(251,191,36,0.15),transparent_55%)]');
+      if(state.theme==='sand') backdrop.classList.add('bg-[radial-gradient(circle_at_50%_50%,rgba(139,92,46,0.25),transparent_60%)]');
 
       qs('#terminalPanel').className=`overflow-hidden flex flex-col ${state.theme==='kernel'?'h-[70vh] mb-10':'h-80 mb-10'} bg-black/30 border border-white/10 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.25)]`;
       qs('#workspacePanel').className=`overflow-hidden ${s.panelClass}`;
@@ -378,6 +387,69 @@
         qs('#hotbar').className='flex gap-4 p-4 bg-[#1a1a1a] border-[4px] border-[#555]';
         qs('#editor').className='w-full min-h-[520px] md:min-h-[650px] p-10 md:p-16 lg:p-24 text-xl md:text-3xl lg:text-4xl font-light outline-none bg-transparent transition-all leading-relaxed text-black font-mc';
         qs('#footer').className='fixed bottom-0 w-full z-[100] px-12 py-5 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.4em] bg-[#c6c6c6] text-black border-t-[6px] border-t-white';
+      } else if(state.theme==='sand'){
+        nav.className='fixed top-0 w-full z-[100] px-8 py-5 flex justify-between items-center bg-white/70 backdrop-blur-md border-b border-amber-900/30 text-amber-900';
+        qs('#settingsBtn').className='p-4 bg-white border border-amber-900/30 text-amber-900 rounded-xl hover:scale-105 active:scale-95 transition';
+        qs('#terminalHeader').className='px-5 py-3 flex justify-between items-center border-b bg-white/70 border-amber-900/30 text-amber-900';
+        qs('#terminalForm').className='p-5 flex items-center gap-3 bg-white/60';
+        qs('#workspaceHeader').className='px-10 py-6 border-b flex justify-between items-center bg-white/70 border-amber-900/30 text-amber-900';
+        qs('#hotbar').className='flex gap-4 p-4 bg-white/70 border border-amber-900/30 rounded-2xl text-amber-900';
+        qs('#editor').className='w-full min-h-[520px] md:min-h-[650px] p-10 md:p-16 lg:p-24 text-xl md:text-3xl lg:text-4xl font-light outline-none bg-transparent transition-all leading-relaxed text-amber-900';
+        qs('#footer').className='fixed bottom-0 w-full z-[100] px-12 py-5 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.4em] bg-white/70 text-amber-900 border-t border-amber-900/30 backdrop-blur-md';
+      } else if(state.theme==='noir'){
+        nav.className='fixed top-0 w-full z-[100] px-8 py-5 flex justify-between items-center bg-black/80 border-b border-white/10';
+        qs('#settingsBtn').className='p-4 bg-[#0f1118] border border-white/10 text-white hover:scale-105 active:scale-95 transition rounded-lg';
+        qs('#terminalHeader').className='px-5 py-3 flex justify-between items-center border-b bg-[#0f1118] border-white/10 text-white';
+        qs('#terminalForm').className='p-5 flex items-center gap-3 bg-[#0d1018]';
+        qs('#workspaceHeader').className='px-10 py-6 border-b flex justify-between items-center bg-[#0f1118] border-white/10';
+        qs('#hotbar').className='flex gap-4 p-4 bg-[#0c0f18] border border-white/10 rounded-xl';
+        qs('#editor').className='w-full min-h-[520px] md:min-h-[650px] p-10 md:p-16 lg:p-24 text-xl md:text-3xl lg:text-4xl font-light outline-none bg-transparent transition-all leading-relaxed text-white font-mono';
+        qs('#footer').className='fixed bottom-0 w-full z-[100] px-12 py-5 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.4em] bg-black/90 border-t border-white/10 text-white/70';
+      } else if(state.theme==='solar'){
+        nav.className='fixed top-0 w-full z-[100] px-8 py-5 flex justify-between items-center bg-amber-950/80 border-b border-amber-500/30';
+        qs('#settingsBtn').className='p-4 bg-amber-500 text-black rounded-xl border border-amber-200/60 hover:scale-105 active:scale-95 transition';
+        qs('#terminalHeader').className='px-5 py-3 flex justify-between items-center border-b bg-amber-900/70 border-amber-500/30';
+        qs('#terminalForm').className='p-5 flex items-center gap-3 bg-amber-950/70';
+        qs('#workspaceHeader').className='px-10 py-6 border-b flex justify-between items-center bg-amber-900/60 border-amber-500/30';
+        qs('#hotbar').className='flex gap-4 p-4 bg-amber-950/70 border border-amber-400/40 rounded-[1.5rem]';
+        qs('#editor').className='w-full min-h-[520px] md:min-h-[650px] p-10 md:p-16 lg:p-24 text-xl md:text-3xl lg:text-4xl font-light outline-none bg-transparent transition-all leading-relaxed text-amber-100';
+        qs('#footer').className='fixed bottom-0 w-full z-[100] px-12 py-5 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.4em] bg-amber-950/90 border-t border-amber-500/30 text-amber-200';
+      } else if(state.theme==='lagoon'){
+        nav.className='fixed top-0 w-full z-[100] px-8 py-5 flex justify-between items-center bg-cyan-950/60 backdrop-blur-2xl border-b border-cyan-400/20';
+        qs('#settingsBtn').className='p-4 bg-cyan-500/80 border border-white/20 rounded-2xl text-white hover:scale-105 active:scale-95 transition';
+        qs('#terminalHeader').className='px-5 py-3 flex justify-between items-center border-b bg-cyan-900/40 border-cyan-400/20';
+        qs('#terminalForm').className='p-5 flex items-center gap-3 bg-[#081020]/70';
+        qs('#workspaceHeader').className='px-10 py-6 border-b flex justify-between items-center bg-cyan-900/30 border-cyan-400/20';
+        qs('#hotbar').className='flex gap-4 p-4 bg-[#0a1428]/70 border border-cyan-400/30 rounded-[1.75rem] text-cyan-100';
+        qs('#editor').className='w-full min-h-[520px] md:min-h-[650px] p-10 md:p-16 lg:p-24 text-xl md:text-3xl lg:text-4xl font-light outline-none bg-transparent transition-all leading-relaxed text-cyan-50';
+        qs('#footer').className='fixed bottom-0 w-full z-[100] px-12 py-5 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.4em] bg-[#06101e]/90 border-t border-cyan-400/20 text-cyan-200';
+      } else if(state.theme==='dusk'){
+        nav.className='fixed top-0 w-full z-[100] px-8 py-5 flex justify-between items-center bg-[#1b0f26]/80 border-b border-purple-400/20';
+        qs('#settingsBtn').className='p-4 bg-purple-600 border border-white/20 rounded-2xl text-white hover:scale-105 active:scale-95 transition';
+        qs('#terminalHeader').className='px-5 py-3 flex justify-between items-center border-b bg-[#241230]/80 border-purple-400/20';
+        qs('#terminalForm').className='p-5 flex items-center gap-3 bg-[#1c1229]/80';
+        qs('#workspaceHeader').className='px-10 py-6 border-b flex justify-between items-center bg-[#241230]/80 border-purple-400/20';
+        qs('#hotbar').className='flex gap-4 p-4 bg-[#1c1229]/90 border border-purple-400/30 rounded-[1.75rem]';
+        qs('#editor').className='w-full min-h-[520px] md:min-h-[650px] p-10 md:p-16 lg:p-24 text-xl md:text-3xl lg:text-4xl font-light outline-none bg-transparent transition-all leading-relaxed text-purple-100';
+        qs('#footer').className='fixed bottom-0 w-full z-[100] px-12 py-5 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.4em] bg-[#1b0f26]/90 border-t border-purple-400/20 text-purple-200';
+      } else if(state.theme==='mech'){
+        nav.className='fixed top-0 w-full z-[100] px-8 py-5 flex justify-between items-center bg-[#0f1624]/90 border-b border-slate-500/30';
+        qs('#settingsBtn').className='p-4 bg-[#1c2738] border border-slate-500/30 text-slate-100 rounded-lg hover:scale-105 active:scale-95 transition';
+        qs('#terminalHeader').className='px-5 py-3 flex justify-between items-center border-b bg-[#101827]/90 border-slate-500/30';
+        qs('#terminalForm').className='p-5 flex items-center gap-3 bg-[#0d1422]/90';
+        qs('#workspaceHeader').className='px-10 py-6 border-b flex justify-between items-center bg-[#101827]/90 border-slate-500/30';
+        qs('#hotbar').className='flex gap-4 p-4 bg-[#0d1422]/90 border border-slate-500/30 rounded-xl';
+        qs('#editor').className='w-full min-h-[520px] md:min-h-[650px] p-10 md:p-16 lg:p-24 text-xl md:text-3xl lg:text-4xl font-light outline-none bg-transparent transition-all leading-relaxed text-slate-100 font-mono';
+        qs('#footer').className='fixed bottom-0 w-full z-[100] px-12 py-5 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.4em] bg-[#0f1624]/90 border-t border-slate-500/30 text-slate-300';
+      } else if(state.theme==='neon'){
+        nav.className='fixed top-0 w-full z-[100] px-8 py-5 flex justify-between items-center bg-[#050611]/90 border-b border-emerald-400/30';
+        qs('#settingsBtn').className='p-4 bg-emerald-500 text-black rounded-xl border border-emerald-300/60 hover:scale-105 active:scale-95 transition';
+        qs('#terminalHeader').className='px-5 py-3 flex justify-between items-center border-b bg-[#0b0d1a]/80 border-emerald-400/30';
+        qs('#terminalForm').className='p-5 flex items-center gap-3 bg-[#0c101d]/80';
+        qs('#workspaceHeader').className='px-10 py-6 border-b flex justify-between items-center bg-[#0b0d1a]/80 border-emerald-400/30';
+        qs('#hotbar').className='flex gap-4 p-4 bg-[#0c101d]/80 border border-emerald-400/30 rounded-[1.5rem]';
+        qs('#editor').className='w-full min-h-[520px] md:min-h-[650px] p-10 md:p-16 lg:p-24 text-xl md:text-3xl lg:text-4xl font-light outline-none bg-transparent transition-all leading-relaxed text-emerald-100 font-mono';
+        qs('#footer').className='fixed bottom-0 w-full z-[100] px-12 py-5 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.4em] bg-[#050611]/95 border-t border-emerald-400/30 text-emerald-200';
       } else {
         nav.className='fixed top-0 w-full z-[100] px-8 py-5 flex justify-between items-center bg-black/40 backdrop-blur-2xl border-b border-white/5';
         qs('#settingsBtn').className =
@@ -401,9 +473,16 @@
       if(state.theme==='minecraft') logo.className='w-14 h-14 flex items-center justify-center bg-[#8b8b8b] border-[4px] border-black shadow-[4px_4px_0px_rgba(0,0,0,0.5)]';
       else if(state.theme==='cyber') logo.className='w-14 h-14 flex items-center justify-center bg-pink-600 border-2 border-white shadow-[4px_4px_0px_#ff00ff]';
       else if(state.theme==='void') logo.className='w-14 h-14 flex items-center justify-center bg-indigo-900 border border-indigo-400/50 shadow-[0_0_20px_rgba(99,102,241,0.5)] rounded-2xl';
+      else if(state.theme==='sand') logo.className='w-14 h-14 flex items-center justify-center bg-white border border-amber-900/40 text-amber-900 rounded-xl shadow-[0_8px_25px_rgba(124,92,45,0.25)]';
+      else if(state.theme==='solar') logo.className='w-14 h-14 flex items-center justify-center bg-gradient-to-br from-amber-500 to-orange-600 border border-amber-200/60 rounded-xl shadow-[0_0_25px_rgba(251,191,36,0.6)]';
+      else if(state.theme==='noir') logo.className='w-14 h-14 flex items-center justify-center bg-[#0f1118] border border-white/10 rounded-lg shadow-[0_10px_30px_rgba(0,0,0,0.4)]';
+      else if(state.theme==='lagoon') logo.className='w-14 h-14 flex items-center justify-center bg-gradient-to-br from-cyan-600 to-emerald-600 border border-cyan-300/30 rounded-2xl shadow-[0_0_25px_rgba(34,211,238,0.35)]';
+      else if(state.theme==='dusk') logo.className='w-14 h-14 flex items-center justify-center bg-gradient-to-br from-purple-600 to-rose-500 border border-purple-300/40 rounded-2xl shadow-[0_0_25px_rgba(168,85,247,0.35)]';
+      else if(state.theme==='mech') logo.className='w-14 h-14 flex items-center justify-center bg-[#1c2738] border border-slate-500/40 rounded-lg shadow-[0_0_20px_rgba(148,163,184,0.3)]';
+      else if(state.theme==='neon') logo.className='w-14 h-14 flex items-center justify-center bg-[#0c101d] border border-emerald-400/40 rounded-xl shadow-[0_0_25px_rgba(16,185,129,0.4)]';
       else logo.className='w-14 h-14 flex items-center justify-center bg-gradient-to-tr from-violet-600 to-indigo-600 rounded-2xl';
 
-      const apiCard=qs('#apiModalCard'); if(apiCard) apiCard.className=`w-full max-w-xl p-8 md:p-10 relative overflow-hidden ${s.panelClass} ${(state.theme==='minecraft')?'text-black':'text-white'}`;
+      const apiCard=qs('#apiModalCard'); if(apiCard) apiCard.className=`w-full max-w-xl p-8 md:p-10 relative overflow-hidden ${s.panelClass} ${(state.theme==='minecraft'||state.theme==='sand')?'text-black':'text-white'}`;
       const apiTitle=qs('#apiTitle'); if(apiTitle) apiTitle.className=`text-3xl md:text-4xl font-black tracking-tight ${s.accent}`;
       const apiSubmit=qs('#apiSubmit');
       if(apiSubmit){
@@ -431,7 +510,7 @@
       const cmd=(cmdRaw||'').trim(); if(!cmd) return;
       pushTerminal({type:'user', text:`root@enti:~$ ${cmd}`});
       const lower=cmd.toLowerCase();
-      if(lower==='help') pushTerminal({type:'info', text:"Commands: help | clear | stats | theme <nebula|minecraft|kernel|cyber|void|aurora> | sudo ai <prompt>"});
+      if(lower==='help') pushTerminal({type:'info', text:"Commands: help | clear | stats | theme <nebula|minecraft|kernel|cyber|void|aurora|solar|noir|lagoon|dusk|mech|sand|neon> | sudo ai <prompt>"});
       else if(lower==='clear') state.terminalHistory=[];
       else if(lower.startsWith('sudo ai ')) sudoAI(cmd.substring(8));
       else if(lower.startsWith('theme ')){

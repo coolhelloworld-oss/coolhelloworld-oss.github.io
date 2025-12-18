@@ -149,6 +149,34 @@
     </section>
   </main>
 
+  <div id="apiModal" class="fixed inset-0 z-[300] hidden bg-black/90 backdrop-blur-3xl items-center justify-center p-5 md:p-8">
+    <div id="apiModalCard" class="w-full max-w-xl p-8 md:p-10 relative overflow-hidden bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2.5rem]">
+      <div class="flex items-center gap-4 mb-6">
+        <i data-lucide="key-round" class="text-emerald-400"></i>
+        <div>
+          <p class="text-[11px] uppercase tracking-[0.25em] text-white/40">Verbindung erforderlich</p>
+          <h2 id="apiTitle" class="text-3xl md:text-4xl font-black tracking-tight">API-Key eingeben</h2>
+        </div>
+      </div>
+
+      <p class="text-sm text-white/70 mb-6">Um SUDO_AI zu aktivieren, benötigst du einen gültigen API-Key. Der Schlüssel bleibt lokal und wird nicht gesendet.</p>
+
+      <form id="apiForm" class="space-y-4">
+        <div class="flex flex-col sm:flex-row gap-3">
+          <input id="apiInput" type="password" autocomplete="off"
+            class="flex-grow px-4 py-3 rounded-2xl bg-black/40 border border-white/10 focus:border-emerald-400/60 outline-none"
+            placeholder="sk-..." />
+          <button id="apiSubmit" type="submit"
+            class="px-5 py-3 rounded-2xl bg-emerald-500 text-black font-black tracking-tight hover:scale-105 active:scale-95 transition">Verbinden</button>
+        </div>
+        <div class="text-xs text-white/40 flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          Schlüssel wird nicht an Server gesendet.
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div id="modal" class="fixed inset-0 z-[250] hidden bg-black/95 backdrop-blur-3xl items-center justify-center p-5 md:p-8">
     <div id="modalCard" class="w-full max-w-6xl p-8 md:p-16 relative overflow-hidden bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem]">
       <div class="flex justify-between items-center mb-10 md:mb-16">
@@ -192,6 +220,8 @@
       theme: 'nebula',
       isLoading: false,
       editorText: '',
+      apiKey: '',
+      provider: 'openai',
       terminalHistory: [
         { type: 'sys', text: 'HYPER_DRIVE_INIT: v4.1.0-STABLE' },
         { type: 'sys', text: 'KERNEL_STATUS: OPTIMIZED' },
@@ -204,11 +234,30 @@
       minecraft:{ name:'GOD CRAFT', bgClass:'bg-[#313131]', panelClass:'bg-[#c6c6c6] border-t-white border-l-white border-b-[#555] border-r-[#555] border-[6px] shadow-[8px_8px_0px_#000] rounded-none', accent:'text-green-600', font:'font-mc' },
       kernel:{ name:'KERNEL SYSTEM', bgClass:'bg-black', panelClass:'bg-black border border-[#00ff41]/50 rounded-none shadow-[0_0_20px_rgba(0,255,65,0.1)]', accent:'text-[#00ff41]', font:'font-mono' },
       cyber:{ name:'RETRO_PINK', bgClass:'bg-[#1a001a]', panelClass:'bg-black/80 border-2 border-pink-500 rounded-none shadow-[5px_5px_0px_#ff00ff]', accent:'text-pink-500', font:'font-sans' },
-      void:{ name:'VOID_WALKER', bgClass:'bg-[#020617]', panelClass:'bg-indigo-950/20 backdrop-blur-md border border-indigo-500/30 rounded-3xl shadow-[0_0_40px_rgba(99,102,241,0.1)]', accent:'text-indigo-400', font:'font-sans' }
+      void:{ name:'VOID_WALKER', bgClass:'bg-[#020617]', panelClass:'bg-indigo-950/20 backdrop-blur-md border border-indigo-500/30 rounded-3xl shadow-[0_0_40px_rgba(99,102,241,0.1)]', accent:'text-indigo-400', font:'font-sans' },
+      aurora:{ name:'AURORA VEIL', bgClass:'bg-gradient-to-br from-slate-950 via-indigo-950 to-emerald-900', panelClass:'bg-white/5 backdrop-blur-2xl border border-emerald-400/20 rounded-[2.5rem] shadow-[0_0_30px_rgba(16,185,129,0.15)]', accent:'text-emerald-300', font:'font-sans' },
+      solar: { name:'SOLAR FLARE', bgClass:'bg-gradient-to-br from-amber-900 via-orange-900 to-black', panelClass:'bg-black/50 border border-amber-400/40 rounded-[1.75rem] shadow-[0_0_40px_rgba(251,191,36,0.25)]', accent:'text-amber-300', font:'font-sans' },
+      noir: { name:'NOIR GRID', bgClass:'bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.05),transparent_40%),radial-gradient(circle_at_80%_30%,rgba(255,255,255,0.05),transparent_45%),#0a0a0a]', panelClass:'bg-[#111]/90 border border-white/10 rounded-xl shadow-[0_15px_45px_rgba(0,0,0,0.4)]', accent:'text-white', font:'font-mono' },
+      lagoon: { name:'LAGOON HAZE', bgClass:'bg-gradient-to-br from-cyan-900 via-slate-900 to-emerald-950', panelClass:'bg-white/5 backdrop-blur-2xl border border-cyan-300/30 rounded-[2rem] shadow-[0_0_40px_rgba(34,211,238,0.2)]', accent:'text-cyan-200', font:'font-sans' },
+      dusk: { name:'DUSK BLOOM', bgClass:'bg-gradient-to-br from-[#1f1029] via-[#2d1630] to-[#120c1f]', panelClass:'bg-[#1b0f26]/80 border border-purple-400/20 rounded-[2rem] shadow-[0_0_35px_rgba(168,85,247,0.2)]', accent:'text-purple-300', font:'font-sans' },
+      mech: { name:'MECH FRAME', bgClass:'bg-gradient-to-br from-gray-950 via-gray-900 to-[#1a1f2b]', panelClass:'bg-[#0f1624]/90 border border-slate-500/40 rounded-lg shadow-[0_0_30px_rgba(148,163,184,0.15)]', accent:'text-slate-200', font:'font-mono' },
+      sand: { name:'SANDSTONE', bgClass:'bg-gradient-to-br from-[#f0d9b5] via-[#e4c29b] to-[#c59a6d]', panelClass:'bg-white/60 border border-amber-900/30 rounded-[2rem] shadow-[0_15px_45px_rgba(124,92,45,0.35)] text-black', accent:'text-amber-900', font:'font-sans' },
+      neon: { name:'NEON WIRE', bgClass:'bg-[#050611]', panelClass:'bg-[#0b0d1a]/90 border border-emerald-400/30 rounded-[1.5rem] shadow-[0_0_45px_rgba(16,185,129,0.25)]', accent:'text-emerald-300', font:'font-mono' }
     };
 
     const qs = (s) => document.querySelector(s);
     const el = (tag, cls='') => { const n = document.createElement(tag); if (cls) n.className = cls; return n; };
+    const maskKey = (key='') => key.length>6 ? `${key.slice(0,3)}...${key.slice(-2)}` : (key||'').replace(/./g,'*');
+    const loadApiKey = () => {
+      try{
+        const saved=localStorage.getItem('enti_api_key');
+        if(saved){ state.apiKey=saved; pushTerminal({type:'info', text:`API_KEY_LOADED: ${maskKey(saved)}`}); }
+      }catch(e){ pushTerminal({type:'err', text:'LOCAL_STORAGE_ERROR: Kann Schlüssel nicht lesen.'}); }
+      try{
+        const p=localStorage.getItem('enti_api_provider');
+        if(p==='openrouter' || p==='openai'){ state.provider=p; pushTerminal({type:'info', text:`PROVIDER_SET: ${p.toUpperCase()}`}); }
+      }catch(e){ pushTerminal({type:'err', text:'LOCAL_STORAGE_ERROR: Provider konnte nicht gelesen werden.'}); }
+    };
 
     function nowHHMM(){ return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
     function computeMetrics(text){
@@ -222,26 +271,63 @@
       if(state.terminalHistory.length>300) state.terminalHistory.splice(0,50);
     }
 
-    function sudoAI(prompt){
+    function openApiModal(){
+      const modal=qs('#apiModal'); if(!modal) return;
+      modal.classList.remove('hidden'); modal.classList.add('flex');
+      setTimeout(()=>{ const input=qs('#apiInput'); if(input) input.focus(); }, 60);
+    }
+    function closeApiModal(){
+      const modal=qs('#apiModal'); if(!modal) return;
+      modal.classList.add('hidden'); modal.classList.remove('flex');
+    }
+
+    async function sudoAI(prompt){
+      if(!state.apiKey){
+        pushTerminal({type:'err', text:'API_KEY_REQUIRED: Bitte zuerst einen API-Key eintragen.'});
+        openApiModal();
+        render();
+        return;
+      }
       state.isLoading=true;
-      pushTerminal({type:'sys', text:`SUDO_AI_REQUEST: "${prompt}"`});
+      pushTerminal({type:'sys', text:`SUDO_AI_REQUEST(${state.provider.toUpperCase()}): "${prompt}"`});
       render();
-      setTimeout(()=>{
-        const p=(prompt||'').toLowerCase();
-        const current=qs('#editor').value||'';
-        if(p.includes('schreib')||p.includes('änder')||p.includes('übersetz')){
-          const transformed = p.includes('übersetz') ? ("[DEMO-ÜBERSETZUNG]\n"+current)
-                           : (p.includes('polish')||p.includes('optimiere')) ? current.replace(/\s+/g,' ').trim()
-                           : current;
-          qs('#editor').value=transformed;
-          state.editorText=transformed;
-          pushTerminal({type:'info', text:'SUDO_SUCCESS: Editor-Inhalt überschrieben.'});
-        } else {
-          pushTerminal({type:'ai', text:`AI: (Demo) Ich habe "${prompt}" verstanden. Gib mir einen API-Key, dann mache ich es richtig.`});
+      const current=qs('#editor').value||'';
+      try{
+        const provider=state.provider||'openai';
+        const endpoint = (provider==='openrouter') ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
+        const headers = {
+          'Content-Type':'application/json',
+          'Authorization':`Bearer ${state.apiKey}`
+        };
+        if(provider==='openrouter'){
+          headers['HTTP-Referer']= (typeof location!=='undefined' && location.origin) ? location.origin : 'http://localhost';
+          headers['X-Title']='ENTI_ENGINE';
         }
+        const res=await fetch(endpoint,{
+          method:'POST',
+          headers,
+          body:JSON.stringify({
+            model: provider==='openrouter' ? 'openai/gpt-4o-mini' : 'gpt-4o-mini',
+            temperature:0.35,
+            messages:[
+              { role:'system', content:'Du bist ENTI_ENGINE, ein präziser Schreib- und Übersetzungsassistent. Antworte kurz und in klaren Sätzen.' },
+              { role:'user', content:`${prompt}\n\nAktueller Editor-Inhalt:\n${current||'(leer)'}` }
+            ]
+          })
+        });
+        if(!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data=await res.json();
+        const answer=(data?.choices?.[0]?.message?.content||'').trim();
+        if(!answer) throw new Error('Leere Antwort erhalten.');
+        qs('#editor').value=answer;
+        state.editorText=answer;
+        pushTerminal({type:'ai', text:`AI: ${answer.length>400?answer.slice(0,400)+'...':answer}`});
+      }catch(err){
+        pushTerminal({type:'err', text:`API_FEHLER: ${(err&&err.message)||err}`});
+      }finally{
         state.isLoading=false;
         render();
-      }, 550);
+      }
     }
 
     function renderHearts(m){
@@ -259,21 +345,21 @@
     function renderTerminal(){
       const body=qs('#terminalBody'); body.innerHTML='';
       for(const line of state.terminalHistory){
-        const row=el('div','flex gap-4 p-3 rounded-xl transition hover:bg-white/5');
-        let cls='text-zinc-500';
-        if(line.type==='ai') cls='bg-violet-500/10 text-violet-300 border border-violet-500/20';
-        if(line.type==='err') cls='text-red-400 bg-red-500/5';
-        if(line.type==='user') cls=(state.theme==='kernel')?'text-[#00ff41]':'text-blue-400';
-        if(line.type==='info') cls='text-zinc-200';
+        const row=el('div','flex gap-3 p-2 rounded-lg border border-white/5 bg-black/20');
+        let cls='text-zinc-400';
+        if(line.type==='ai') cls='text-white border-white/10 bg-white/5';
+        if(line.type==='err') cls='text-rose-400 border-rose-600/40 bg-rose-900/10';
+        if(line.type==='user') cls='text-cyan-300 border-cyan-500/30 bg-cyan-900/10';
+        if(line.type==='info') cls='text-zinc-200 border-white/5 bg-white/5';
         row.className += ' '+cls;
 
-        const ts=el('span','opacity-20 shrink-0 select-none'); ts.textContent=`[${line.ts||nowHHMM()}]`;
-        const txt=el('span','whitespace-pre-wrap leading-relaxed'); txt.textContent=line.text;
+        const ts=el('span','opacity-30 shrink-0 select-none text-[11px]'); ts.textContent=`${line.ts||nowHHMM()}`;
+        const txt=el('span','whitespace-pre-wrap leading-relaxed text-sm'); txt.textContent=line.text;
         row.appendChild(ts); row.appendChild(txt); body.appendChild(row);
       }
       if(state.isLoading){
-        const loading=el('div','animate-pulse font-black px-14 tracking-widest '+themeSpecs[state.theme].accent);
-        loading.textContent='EXECUTING_CORE_QUERY...'; body.appendChild(loading);
+        const loading=el('div','animate-pulse font-black px-6 py-2 text-center text-xs uppercase tracking-[0.35em] '+themeSpecs[state.theme].accent);
+        loading.textContent='EXECUTING_CORE_QUERY'; body.appendChild(loading);
       }
       body.scrollTop=body.scrollHeight;
     }
@@ -284,11 +370,13 @@
 
       const backdrop=qs('#bgBackdrop');
       backdrop.className='fixed inset-0 pointer-events-none';
-      if(state.theme==='cyber') backdrop.classList.add('cyber-grid');
-      if(state.theme==='void') backdrop.classList.add('void-particles','animate-pulse');
-      if(state.theme==='kernel') backdrop.classList.add('bg-[radial-gradient(circle_at_50%_50%,rgba(0,255,65,0.03),transparent)]');
+      if(state.theme==='cyber' || state.theme==='neon') backdrop.classList.add('cyber-grid');
+      if(state.theme==='void' || state.theme==='lagoon') backdrop.classList.add('void-particles','animate-pulse');
+      if(state.theme==='kernel' || state.theme==='noir') backdrop.classList.add('bg-[radial-gradient(circle_at_50%_50%,rgba(0,255,65,0.03),transparent)]');
+      if(state.theme==='solar') backdrop.classList.add('bg-[radial-gradient(circle_at_70%_20%,rgba(251,191,36,0.15),transparent_55%)]');
+      if(state.theme==='sand') backdrop.classList.add('bg-[radial-gradient(circle_at_50%_50%,rgba(139,92,46,0.25),transparent_60%)]');
 
-      qs('#terminalPanel').className=`overflow-hidden flex flex-col ${state.theme==='kernel'?'h-[70vh] mb-10':'h-80 mb-10'} ${s.panelClass}`;
+      qs('#terminalPanel').className=`overflow-hidden flex flex-col ${state.theme==='kernel'?'h-[70vh] mb-10':'h-80 mb-10'} bg-black/30 border border-white/10 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.25)]`;
       qs('#workspacePanel').className=`overflow-hidden ${s.panelClass}`;
 
       qs('#accentText').className=s.accent;
@@ -305,20 +393,83 @@
       if(state.theme==='minecraft'){
         nav.className='fixed top-0 w-full z-[100] px-8 py-5 flex justify-between items-center bg-[#c6c6c6] border-b-[6px] border-b-[#555] text-black';
         qs('#settingsBtn').className='p-4 bg-[#bebebe] border-[4px] border-black text-black hover:scale-105 active:scale-95 transition';
-        qs('#terminalHeader').className='px-6 py-3 flex justify-between items-center border-b bg-[#bebebe] border-black';
-        qs('#terminalForm').className='p-6 flex items-center gap-4 bg-[#8b8b8b]';
+        qs('#terminalHeader').className='px-5 py-3 flex justify-between items-center border-b bg-[#d4d4d4] border-black text-black';
+        qs('#terminalForm').className='p-5 flex items-center gap-3 bg-[#d4d4d4]';
         qs('#workspaceHeader').className='px-10 py-6 border-b flex justify-between items-center bg-[#bebebe] border-black';
         qs('#hotbar').className='flex gap-4 p-4 bg-[#1a1a1a] border-[4px] border-[#555]';
         qs('#editor').className='w-full min-h-[520px] md:min-h-[650px] p-10 md:p-16 lg:p-24 text-xl md:text-3xl lg:text-4xl font-light outline-none bg-transparent transition-all leading-relaxed text-black font-mc';
         qs('#footer').className='fixed bottom-0 w-full z-[100] px-12 py-5 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.4em] bg-[#c6c6c6] text-black border-t-[6px] border-t-white';
+      } else if(state.theme==='sand'){
+        nav.className='fixed top-0 w-full z-[100] px-8 py-5 flex justify-between items-center bg-white/70 backdrop-blur-md border-b border-amber-900/30 text-amber-900';
+        qs('#settingsBtn').className='p-4 bg-white border border-amber-900/30 text-amber-900 rounded-xl hover:scale-105 active:scale-95 transition';
+        qs('#terminalHeader').className='px-5 py-3 flex justify-between items-center border-b bg-white/70 border-amber-900/30 text-amber-900';
+        qs('#terminalForm').className='p-5 flex items-center gap-3 bg-white/60';
+        qs('#workspaceHeader').className='px-10 py-6 border-b flex justify-between items-center bg-white/70 border-amber-900/30 text-amber-900';
+        qs('#hotbar').className='flex gap-4 p-4 bg-white/70 border border-amber-900/30 rounded-2xl text-amber-900';
+        qs('#editor').className='w-full min-h-[520px] md:min-h-[650px] p-10 md:p-16 lg:p-24 text-xl md:text-3xl lg:text-4xl font-light outline-none bg-transparent transition-all leading-relaxed text-amber-900';
+        qs('#footer').className='fixed bottom-0 w-full z-[100] px-12 py-5 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.4em] bg-white/70 text-amber-900 border-t border-amber-900/30 backdrop-blur-md';
+      } else if(state.theme==='noir'){
+        nav.className='fixed top-0 w-full z-[100] px-8 py-5 flex justify-between items-center bg-black/80 border-b border-white/10';
+        qs('#settingsBtn').className='p-4 bg-[#0f1118] border border-white/10 text-white hover:scale-105 active:scale-95 transition rounded-lg';
+        qs('#terminalHeader').className='px-5 py-3 flex justify-between items-center border-b bg-[#0f1118] border-white/10 text-white';
+        qs('#terminalForm').className='p-5 flex items-center gap-3 bg-[#0d1018]';
+        qs('#workspaceHeader').className='px-10 py-6 border-b flex justify-between items-center bg-[#0f1118] border-white/10';
+        qs('#hotbar').className='flex gap-4 p-4 bg-[#0c0f18] border border-white/10 rounded-xl';
+        qs('#editor').className='w-full min-h-[520px] md:min-h-[650px] p-10 md:p-16 lg:p-24 text-xl md:text-3xl lg:text-4xl font-light outline-none bg-transparent transition-all leading-relaxed text-white font-mono';
+        qs('#footer').className='fixed bottom-0 w-full z-[100] px-12 py-5 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.4em] bg-black/90 border-t border-white/10 text-white/70';
+      } else if(state.theme==='solar'){
+        nav.className='fixed top-0 w-full z-[100] px-8 py-5 flex justify-between items-center bg-amber-950/80 border-b border-amber-500/30';
+        qs('#settingsBtn').className='p-4 bg-amber-500 text-black rounded-xl border border-amber-200/60 hover:scale-105 active:scale-95 transition';
+        qs('#terminalHeader').className='px-5 py-3 flex justify-between items-center border-b bg-amber-900/70 border-amber-500/30';
+        qs('#terminalForm').className='p-5 flex items-center gap-3 bg-amber-950/70';
+        qs('#workspaceHeader').className='px-10 py-6 border-b flex justify-between items-center bg-amber-900/60 border-amber-500/30';
+        qs('#hotbar').className='flex gap-4 p-4 bg-amber-950/70 border border-amber-400/40 rounded-[1.5rem]';
+        qs('#editor').className='w-full min-h-[520px] md:min-h-[650px] p-10 md:p-16 lg:p-24 text-xl md:text-3xl lg:text-4xl font-light outline-none bg-transparent transition-all leading-relaxed text-amber-100';
+        qs('#footer').className='fixed bottom-0 w-full z-[100] px-12 py-5 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.4em] bg-amber-950/90 border-t border-amber-500/30 text-amber-200';
+      } else if(state.theme==='lagoon'){
+        nav.className='fixed top-0 w-full z-[100] px-8 py-5 flex justify-between items-center bg-cyan-950/60 backdrop-blur-2xl border-b border-cyan-400/20';
+        qs('#settingsBtn').className='p-4 bg-cyan-500/80 border border-white/20 rounded-2xl text-white hover:scale-105 active:scale-95 transition';
+        qs('#terminalHeader').className='px-5 py-3 flex justify-between items-center border-b bg-cyan-900/40 border-cyan-400/20';
+        qs('#terminalForm').className='p-5 flex items-center gap-3 bg-[#081020]/70';
+        qs('#workspaceHeader').className='px-10 py-6 border-b flex justify-between items-center bg-cyan-900/30 border-cyan-400/20';
+        qs('#hotbar').className='flex gap-4 p-4 bg-[#0a1428]/70 border border-cyan-400/30 rounded-[1.75rem] text-cyan-100';
+        qs('#editor').className='w-full min-h-[520px] md:min-h-[650px] p-10 md:p-16 lg:p-24 text-xl md:text-3xl lg:text-4xl font-light outline-none bg-transparent transition-all leading-relaxed text-cyan-50';
+        qs('#footer').className='fixed bottom-0 w-full z-[100] px-12 py-5 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.4em] bg-[#06101e]/90 border-t border-cyan-400/20 text-cyan-200';
+      } else if(state.theme==='dusk'){
+        nav.className='fixed top-0 w-full z-[100] px-8 py-5 flex justify-between items-center bg-[#1b0f26]/80 border-b border-purple-400/20';
+        qs('#settingsBtn').className='p-4 bg-purple-600 border border-white/20 rounded-2xl text-white hover:scale-105 active:scale-95 transition';
+        qs('#terminalHeader').className='px-5 py-3 flex justify-between items-center border-b bg-[#241230]/80 border-purple-400/20';
+        qs('#terminalForm').className='p-5 flex items-center gap-3 bg-[#1c1229]/80';
+        qs('#workspaceHeader').className='px-10 py-6 border-b flex justify-between items-center bg-[#241230]/80 border-purple-400/20';
+        qs('#hotbar').className='flex gap-4 p-4 bg-[#1c1229]/90 border border-purple-400/30 rounded-[1.75rem]';
+        qs('#editor').className='w-full min-h-[520px] md:min-h-[650px] p-10 md:p-16 lg:p-24 text-xl md:text-3xl lg:text-4xl font-light outline-none bg-transparent transition-all leading-relaxed text-purple-100';
+        qs('#footer').className='fixed bottom-0 w-full z-[100] px-12 py-5 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.4em] bg-[#1b0f26]/90 border-t border-purple-400/20 text-purple-200';
+      } else if(state.theme==='mech'){
+        nav.className='fixed top-0 w-full z-[100] px-8 py-5 flex justify-between items-center bg-[#0f1624]/90 border-b border-slate-500/30';
+        qs('#settingsBtn').className='p-4 bg-[#1c2738] border border-slate-500/30 text-slate-100 rounded-lg hover:scale-105 active:scale-95 transition';
+        qs('#terminalHeader').className='px-5 py-3 flex justify-between items-center border-b bg-[#101827]/90 border-slate-500/30';
+        qs('#terminalForm').className='p-5 flex items-center gap-3 bg-[#0d1422]/90';
+        qs('#workspaceHeader').className='px-10 py-6 border-b flex justify-between items-center bg-[#101827]/90 border-slate-500/30';
+        qs('#hotbar').className='flex gap-4 p-4 bg-[#0d1422]/90 border border-slate-500/30 rounded-xl';
+        qs('#editor').className='w-full min-h-[520px] md:min-h-[650px] p-10 md:p-16 lg:p-24 text-xl md:text-3xl lg:text-4xl font-light outline-none bg-transparent transition-all leading-relaxed text-slate-100 font-mono';
+        qs('#footer').className='fixed bottom-0 w-full z-[100] px-12 py-5 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.4em] bg-[#0f1624]/90 border-t border-slate-500/30 text-slate-300';
+      } else if(state.theme==='neon'){
+        nav.className='fixed top-0 w-full z-[100] px-8 py-5 flex justify-between items-center bg-[#050611]/90 border-b border-emerald-400/30';
+        qs('#settingsBtn').className='p-4 bg-emerald-500 text-black rounded-xl border border-emerald-300/60 hover:scale-105 active:scale-95 transition';
+        qs('#terminalHeader').className='px-5 py-3 flex justify-between items-center border-b bg-[#0b0d1a]/80 border-emerald-400/30';
+        qs('#terminalForm').className='p-5 flex items-center gap-3 bg-[#0c101d]/80';
+        qs('#workspaceHeader').className='px-10 py-6 border-b flex justify-between items-center bg-[#0b0d1a]/80 border-emerald-400/30';
+        qs('#hotbar').className='flex gap-4 p-4 bg-[#0c101d]/80 border border-emerald-400/30 rounded-[1.5rem]';
+        qs('#editor').className='w-full min-h-[520px] md:min-h-[650px] p-10 md:p-16 lg:p-24 text-xl md:text-3xl lg:text-4xl font-light outline-none bg-transparent transition-all leading-relaxed text-emerald-100 font-mono';
+        qs('#footer').className='fixed bottom-0 w-full z-[100] px-12 py-5 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.4em] bg-[#050611]/95 border-t border-emerald-400/30 text-emerald-200';
       } else {
         nav.className='fixed top-0 w-full z-[100] px-8 py-5 flex justify-between items-center bg-black/40 backdrop-blur-2xl border-b border-white/5';
         qs('#settingsBtn').className =
           (state.theme==='cyber') ? 'p-4 bg-pink-600 border-2 border-white hover:scale-105 active:scale-95 transition'
           : (state.theme==='void') ? 'p-4 bg-indigo-800/40 border border-indigo-400/30 hover:scale-105 active:scale-95 transition rounded-2xl'
           : 'p-4 bg-white/5 rounded-2xl border border-white/10 hover:scale-105 active:scale-95 transition';
-        qs('#terminalHeader').className='px-6 py-3 flex justify-between items-center border-b bg-white/5 border-white/5';
-        qs('#terminalForm').className='p-6 flex items-center gap-4 bg-black/40';
+        qs('#terminalHeader').className='px-5 py-3 flex justify-between items-center border-b bg-white/5 border-white/10';
+        qs('#terminalForm').className='p-5 flex items-center gap-3 bg-black/30';
         qs('#workspaceHeader').className='px-10 py-6 border-b flex justify-between items-center bg-white/5 border-white/5';
         qs('#hotbar').className =
           (state.theme==='cyber') ? 'flex gap-4 p-4 bg-pink-900/20 border-2 border-pink-500'
@@ -334,7 +485,24 @@
       if(state.theme==='minecraft') logo.className='w-14 h-14 flex items-center justify-center bg-[#8b8b8b] border-[4px] border-black shadow-[4px_4px_0px_rgba(0,0,0,0.5)]';
       else if(state.theme==='cyber') logo.className='w-14 h-14 flex items-center justify-center bg-pink-600 border-2 border-white shadow-[4px_4px_0px_#ff00ff]';
       else if(state.theme==='void') logo.className='w-14 h-14 flex items-center justify-center bg-indigo-900 border border-indigo-400/50 shadow-[0_0_20px_rgba(99,102,241,0.5)] rounded-2xl';
+      else if(state.theme==='sand') logo.className='w-14 h-14 flex items-center justify-center bg-white border border-amber-900/40 text-amber-900 rounded-xl shadow-[0_8px_25px_rgba(124,92,45,0.25)]';
+      else if(state.theme==='solar') logo.className='w-14 h-14 flex items-center justify-center bg-gradient-to-br from-amber-500 to-orange-600 border border-amber-200/60 rounded-xl shadow-[0_0_25px_rgba(251,191,36,0.6)]';
+      else if(state.theme==='noir') logo.className='w-14 h-14 flex items-center justify-center bg-[#0f1118] border border-white/10 rounded-lg shadow-[0_10px_30px_rgba(0,0,0,0.4)]';
+      else if(state.theme==='lagoon') logo.className='w-14 h-14 flex items-center justify-center bg-gradient-to-br from-cyan-600 to-emerald-600 border border-cyan-300/30 rounded-2xl shadow-[0_0_25px_rgba(34,211,238,0.35)]';
+      else if(state.theme==='dusk') logo.className='w-14 h-14 flex items-center justify-center bg-gradient-to-br from-purple-600 to-rose-500 border border-purple-300/40 rounded-2xl shadow-[0_0_25px_rgba(168,85,247,0.35)]';
+      else if(state.theme==='mech') logo.className='w-14 h-14 flex items-center justify-center bg-[#1c2738] border border-slate-500/40 rounded-lg shadow-[0_0_20px_rgba(148,163,184,0.3)]';
+      else if(state.theme==='neon') logo.className='w-14 h-14 flex items-center justify-center bg-[#0c101d] border border-emerald-400/40 rounded-xl shadow-[0_0_25px_rgba(16,185,129,0.4)]';
       else logo.className='w-14 h-14 flex items-center justify-center bg-gradient-to-tr from-violet-600 to-indigo-600 rounded-2xl';
+
+      const apiCard=qs('#apiModalCard'); if(apiCard) apiCard.className=`w-full max-w-xl p-8 md:p-10 relative overflow-hidden ${s.panelClass} ${(state.theme==='minecraft'||state.theme==='sand')?'text-black':'text-white'}`;
+      const apiTitle=qs('#apiTitle'); if(apiTitle) apiTitle.className=`text-3xl md:text-4xl font-black tracking-tight ${s.accent}`;
+      const apiSubmit=qs('#apiSubmit');
+      if(apiSubmit){
+        const base='px-5 py-3 rounded-2xl font-black tracking-tight hover:scale-105 active:scale-95 transition ';
+        apiSubmit.className = (state.theme==='minecraft') ? base+'bg-green-500 text-black border-4 border-black'
+          : (state.theme==='kernel') ? base+'bg-[#00ff41] text-black'
+          : base+'bg-white text-black';
+      }
 
       qs('#themeName').textContent=s.name;
       qs('#syncDot').className='w-3 h-3 rounded-full animate-ping '+(state.theme==='minecraft'?'bg-green-600':state.theme==='void'?'bg-indigo-400':'bg-violet-500');
@@ -354,9 +522,17 @@
       const cmd=(cmdRaw||'').trim(); if(!cmd) return;
       pushTerminal({type:'user', text:`root@enti:~$ ${cmd}`});
       const lower=cmd.toLowerCase();
-      if(lower==='help') pushTerminal({type:'info', text:"Commands: help | clear | stats | theme <nebula|minecraft|kernel|cyber|void> | sudo ai <prompt>"});
+      if(lower==='help') pushTerminal({type:'info', text:"Commands: help | clear | stats | provider <openai|openrouter> | theme <nebula|minecraft|kernel|cyber|void|aurora|solar|noir|lagoon|dusk|mech|sand|neon> | sudo ai <prompt>"});
       else if(lower==='clear') state.terminalHistory=[];
       else if(lower.startsWith('sudo ai ')) sudoAI(cmd.substring(8));
+      else if(lower.startsWith('provider ')){
+        const p=lower.split(/\s+/)[1];
+        if(p==='openai'||p==='openrouter'){
+          state.provider=p;
+          try{ localStorage.setItem('enti_api_provider', p); }catch(err){ pushTerminal({type:'err', text:'LOCAL_STORAGE_ERROR: Provider konnte nicht gespeichert werden.'}); }
+          pushTerminal({type:'sys', text:`PROVIDER_SET: ${p.toUpperCase()}`});
+        } else pushTerminal({type:'err', text:"PROVIDER_ERROR: Nutze 'openai' oder 'openrouter'."});
+      }
       else if(lower.startsWith('theme ')){
         const t=lower.split(/\s+/)[1];
         if(themeSpecs[t]){ state.theme=t; pushTerminal({type:'sys', text:`THEME_SYNC: Modus auf ${t.toUpperCase()} gestellt.`}); }
@@ -388,6 +564,19 @@
     qs('#modal').addEventListener('click', (e)=>{ if(e.target.id==='modal') closeModal(); });
     qs('#terminalForm').addEventListener('submit',(e)=>{ e.preventDefault(); const inp=qs('#terminalInput'); const cmd=inp.value; inp.value=''; executeCommand(cmd); });
     qs('#editor').addEventListener('input',(e)=>{ state.editorText=e.target.value||''; render(); });
+    const apiForm=qs('#apiForm');
+    if(apiForm){
+      apiForm.addEventListener('submit',(e)=>{
+        e.preventDefault();
+        const key=(qs('#apiInput').value||'').trim();
+        if(!key){ pushTerminal({type:'err', text:'API_KEY_ERROR: Kein Schlüssel angegeben.'}); render(); return; }
+        state.apiKey=key;
+        try{ localStorage.setItem('enti_api_key', key); }catch(err){ pushTerminal({type:'err', text:'LOCAL_STORAGE_ERROR: Schlüssel konnte nicht gespeichert werden.'}); }
+        closeApiModal();
+        pushTerminal({type:'info', text:`API_KEY_SET: ${maskKey(key)}`});
+        render();
+      });
+    }
     document.querySelectorAll('.toolBtn').forEach(btn=>{
       btn.addEventListener('click',()=>{
         const action=btn.getAttribute('data-action');
@@ -395,9 +584,10 @@
         sudoAI(`Optimiere den Text: Fokus auf ${action}`);
       });
     });
-
     qs('#editor').value='';
+    loadApiKey();
     render();
+    if(!state.apiKey) setTimeout(openApiModal, 200);
   </script>
 </body>
 </html>

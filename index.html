@@ -240,6 +240,12 @@
     const qs = (s) => document.querySelector(s);
     const el = (tag, cls='') => { const n = document.createElement(tag); if (cls) n.className = cls; return n; };
     const maskKey = (key='') => key.length>6 ? `${key.slice(0,3)}...${key.slice(-2)}` : (key||'').replace(/./g,'*');
+    const loadApiKey = () => {
+      try{
+        const saved=localStorage.getItem('enti_api_key');
+        if(saved){ state.apiKey=saved; pushTerminal({type:'info', text:`API_KEY_LOADED: ${maskKey(saved)}`}); }
+      }catch(e){ pushTerminal({type:'err', text:'LOCAL_STORAGE_ERROR: Kann Schlüssel nicht lesen.'}); }
+    };
 
     function nowHHMM(){ return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
     function computeMetrics(text){
@@ -263,7 +269,7 @@
       modal.classList.add('hidden'); modal.classList.remove('flex');
     }
 
-    function sudoAI(prompt){
+    async function sudoAI(prompt){
       if(!state.apiKey){
         pushTerminal({type:'err', text:'API_KEY_REQUIRED: Bitte zuerst einen API-Key eintragen.'});
         openApiModal();
@@ -273,22 +279,36 @@
       state.isLoading=true;
       pushTerminal({type:'sys', text:`SUDO_AI_REQUEST: "${prompt}"`});
       render();
-      setTimeout(()=>{
-        const p=(prompt||'').toLowerCase();
-        const current=qs('#editor').value||'';
-        if(p.includes('schreib')||p.includes('änder')||p.includes('übersetz')){
-          const transformed = p.includes('übersetz') ? ("[DEMO-ÜBERSETZUNG]\n"+current)
-                           : (p.includes('polish')||p.includes('optimiere')) ? current.replace(/\s+/g,' ').trim()
-                           : current;
-          qs('#editor').value=transformed;
-          state.editorText=transformed;
-          pushTerminal({type:'info', text:'SUDO_SUCCESS: Editor-Inhalt überschrieben.'});
-        } else {
-          pushTerminal({type:'ai', text:`AI: (Demo) Ich habe "${prompt}" verstanden. Gib mir einen API-Key, dann mache ich es richtig.`});
-        }
+      const current=qs('#editor').value||'';
+      try{
+        const res=await fetch('https://api.openai.com/v1/chat/completions',{
+          method:'POST',
+          headers:{
+            'Content-Type':'application/json',
+            'Authorization':`Bearer ${state.apiKey}`
+          },
+          body:JSON.stringify({
+            model:'gpt-4o-mini',
+            temperature:0.35,
+            messages:[
+              { role:'system', content:'Du bist ENTI_ENGINE, ein präziser Schreib- und Übersetzungsassistent. Antworte kurz und in klaren Sätzen.' },
+              { role:'user', content:`${prompt}\n\nAktueller Editor-Inhalt:\n${current||'(leer)'}` }
+            ]
+          })
+        });
+        if(!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data=await res.json();
+        const answer=(data?.choices?.[0]?.message?.content||'').trim();
+        if(!answer) throw new Error('Leere Antwort erhalten.');
+        qs('#editor').value=answer;
+        state.editorText=answer;
+        pushTerminal({type:'ai', text:`AI: ${answer.length>400?answer.slice(0,400)+'...':answer}`});
+      }catch(err){
+        pushTerminal({type:'err', text:`API_FEHLER: ${(err&&err.message)||err}`});
+      }finally{
         state.isLoading=false;
         render();
-      }, 550);
+      }
     }
 
     function renderHearts(m){
@@ -306,21 +326,21 @@
     function renderTerminal(){
       const body=qs('#terminalBody'); body.innerHTML='';
       for(const line of state.terminalHistory){
-        const row=el('div','flex gap-4 p-3 rounded-xl transition hover:bg-white/5');
-        let cls='text-zinc-500';
-        if(line.type==='ai') cls='bg-violet-500/10 text-violet-300 border border-violet-500/20';
-        if(line.type==='err') cls='text-red-400 bg-red-500/5';
-        if(line.type==='user') cls=(state.theme==='kernel')?'text-[#00ff41]':'text-blue-400';
-        if(line.type==='info') cls='text-zinc-200';
+        const row=el('div','flex gap-3 p-2 rounded-lg border border-white/5 bg-black/20');
+        let cls='text-zinc-400';
+        if(line.type==='ai') cls='text-white border-white/10 bg-white/5';
+        if(line.type==='err') cls='text-rose-400 border-rose-600/40 bg-rose-900/10';
+        if(line.type==='user') cls='text-cyan-300 border-cyan-500/30 bg-cyan-900/10';
+        if(line.type==='info') cls='text-zinc-200 border-white/5 bg-white/5';
         row.className += ' '+cls;
 
-        const ts=el('span','opacity-20 shrink-0 select-none'); ts.textContent=`[${line.ts||nowHHMM()}]`;
-        const txt=el('span','whitespace-pre-wrap leading-relaxed'); txt.textContent=line.text;
+        const ts=el('span','opacity-30 shrink-0 select-none text-[11px]'); ts.textContent=`${line.ts||nowHHMM()}`;
+        const txt=el('span','whitespace-pre-wrap leading-relaxed text-sm'); txt.textContent=line.text;
         row.appendChild(ts); row.appendChild(txt); body.appendChild(row);
       }
       if(state.isLoading){
-        const loading=el('div','animate-pulse font-black px-14 tracking-widest '+themeSpecs[state.theme].accent);
-        loading.textContent='EXECUTING_CORE_QUERY...'; body.appendChild(loading);
+        const loading=el('div','animate-pulse font-black px-6 py-2 text-center text-xs uppercase tracking-[0.35em] '+themeSpecs[state.theme].accent);
+        loading.textContent='EXECUTING_CORE_QUERY'; body.appendChild(loading);
       }
       body.scrollTop=body.scrollHeight;
     }
@@ -335,7 +355,7 @@
       if(state.theme==='void') backdrop.classList.add('void-particles','animate-pulse');
       if(state.theme==='kernel') backdrop.classList.add('bg-[radial-gradient(circle_at_50%_50%,rgba(0,255,65,0.03),transparent)]');
 
-      qs('#terminalPanel').className=`overflow-hidden flex flex-col ${state.theme==='kernel'?'h-[70vh] mb-10':'h-80 mb-10'} ${s.panelClass}`;
+      qs('#terminalPanel').className=`overflow-hidden flex flex-col ${state.theme==='kernel'?'h-[70vh] mb-10':'h-80 mb-10'} bg-black/30 border border-white/10 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.25)]`;
       qs('#workspacePanel').className=`overflow-hidden ${s.panelClass}`;
 
       qs('#accentText').className=s.accent;
@@ -352,8 +372,8 @@
       if(state.theme==='minecraft'){
         nav.className='fixed top-0 w-full z-[100] px-8 py-5 flex justify-between items-center bg-[#c6c6c6] border-b-[6px] border-b-[#555] text-black';
         qs('#settingsBtn').className='p-4 bg-[#bebebe] border-[4px] border-black text-black hover:scale-105 active:scale-95 transition';
-        qs('#terminalHeader').className='px-6 py-3 flex justify-between items-center border-b bg-[#bebebe] border-black';
-        qs('#terminalForm').className='p-6 flex items-center gap-4 bg-[#8b8b8b]';
+        qs('#terminalHeader').className='px-5 py-3 flex justify-between items-center border-b bg-[#d4d4d4] border-black text-black';
+        qs('#terminalForm').className='p-5 flex items-center gap-3 bg-[#d4d4d4]';
         qs('#workspaceHeader').className='px-10 py-6 border-b flex justify-between items-center bg-[#bebebe] border-black';
         qs('#hotbar').className='flex gap-4 p-4 bg-[#1a1a1a] border-[4px] border-[#555]';
         qs('#editor').className='w-full min-h-[520px] md:min-h-[650px] p-10 md:p-16 lg:p-24 text-xl md:text-3xl lg:text-4xl font-light outline-none bg-transparent transition-all leading-relaxed text-black font-mc';
@@ -364,8 +384,8 @@
           (state.theme==='cyber') ? 'p-4 bg-pink-600 border-2 border-white hover:scale-105 active:scale-95 transition'
           : (state.theme==='void') ? 'p-4 bg-indigo-800/40 border border-indigo-400/30 hover:scale-105 active:scale-95 transition rounded-2xl'
           : 'p-4 bg-white/5 rounded-2xl border border-white/10 hover:scale-105 active:scale-95 transition';
-        qs('#terminalHeader').className='px-6 py-3 flex justify-between items-center border-b bg-white/5 border-white/5';
-        qs('#terminalForm').className='p-6 flex items-center gap-4 bg-black/40';
+        qs('#terminalHeader').className='px-5 py-3 flex justify-between items-center border-b bg-white/5 border-white/10';
+        qs('#terminalForm').className='p-5 flex items-center gap-3 bg-black/30';
         qs('#workspaceHeader').className='px-10 py-6 border-b flex justify-between items-center bg-white/5 border-white/5';
         qs('#hotbar').className =
           (state.theme==='cyber') ? 'flex gap-4 p-4 bg-pink-900/20 border-2 border-pink-500'
@@ -452,6 +472,7 @@
         const key=(qs('#apiInput').value||'').trim();
         if(!key){ pushTerminal({type:'err', text:'API_KEY_ERROR: Kein Schlüssel angegeben.'}); render(); return; }
         state.apiKey=key;
+        try{ localStorage.setItem('enti_api_key', key); }catch(err){ pushTerminal({type:'err', text:'LOCAL_STORAGE_ERROR: Schlüssel konnte nicht gespeichert werden.'}); }
         closeApiModal();
         pushTerminal({type:'info', text:`API_KEY_SET: ${maskKey(key)}`});
         render();
@@ -464,10 +485,10 @@
         sudoAI(`Optimiere den Text: Fokus auf ${action}`);
       });
     });
-
     qs('#editor').value='';
+    loadApiKey();
     render();
-    setTimeout(openApiModal, 200);
+    if(!state.apiKey) setTimeout(openApiModal, 200);
   </script>
 </body>
 </html>

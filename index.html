@@ -162,10 +162,18 @@
       <p class="text-sm text-white/70 mb-6">Um SUDO_AI zu aktivieren, benötigst du einen gültigen API-Key. Der Schlüssel bleibt lokal und wird nicht gesendet.</p>
 
       <form id="apiForm" class="space-y-4">
+        <div class="flex items-center gap-3 flex-wrap">
+          <label class="text-xs uppercase tracking-[0.25em] opacity-50">Provider</label>
+          <div class="flex gap-2">
+            <button type="button" data-provider-select="openai" class="px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-white/70">OpenAI</button>
+            <button type="button" data-provider-select="openrouter" class="px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-white/70">OpenRouter</button>
+            <button type="button" data-provider-select="gemini" class="px-3 py-2 rounded-xl border border-white/10 bg-white/5 text-white/70">Gemini</button>
+          </div>
+        </div>
         <div class="flex flex-col sm:flex-row gap-3">
           <input id="apiInput" type="password" autocomplete="off"
             class="flex-grow px-4 py-3 rounded-2xl bg-black/40 border border-white/10 focus:border-emerald-400/60 outline-none"
-            placeholder="sk-..." />
+            placeholder="sk-... oder AI..." />
           <button id="apiSubmit" type="submit"
             class="px-5 py-3 rounded-2xl bg-emerald-500 text-black font-black tracking-tight hover:scale-105 active:scale-95 transition">Verbinden</button>
         </div>
@@ -179,17 +187,107 @@
 
   <div id="modal" class="fixed inset-0 z-[250] hidden bg-black/95 backdrop-blur-3xl items-center justify-center p-5 md:p-8">
     <div id="modalCard" class="w-full max-w-6xl p-8 md:p-16 relative overflow-hidden bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem]">
-      <div class="flex justify-between items-center mb-10 md:mb-16">
+      <div class="flex justify-between items-center mb-10 md:mb-12">
         <div>
           <h2 class="text-4xl md:text-6xl font-black tracking-tighter italic leading-none mb-2">SYSTEM_CORE</h2>
-          <p class="opacity-40 text-sm tracking-widest uppercase">Select UI Protocol for Hyper-Drive</p>
+          <p class="opacity-40 text-sm tracking-widest uppercase">Passe ENTI_ENGINE an deine Missions-Needs an</p>
         </div>
         <button id="closeModal" class="p-3 md:p-4 hover:rotate-90 transition-transform duration-500">
           <i data-lucide="x" class="w-10 h-10"></i>
         </button>
       </div>
 
-      <div id="themeGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5 md:gap-6"></div>
+      <div class="flex flex-wrap gap-3 mb-8">
+        <button id="tab-themes" class="px-4 py-3 rounded-2xl border bg-white text-black font-black border-white">Themes</button>
+        <button id="tab-api" class="px-4 py-3 rounded-2xl border border-white/10 bg-white/5 text-white/70 hover:border-white/30">API</button>
+        <button id="tab-prefs" class="px-4 py-3 rounded-2xl border border-white/10 bg-white/5 text-white/70 hover:border-white/30">Einstellungen</button>
+      </div>
+
+      <div id="panel-themes">
+        <div id="themeGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5 md:gap-6"></div>
+      </div>
+
+      <div id="panel-api" class="hidden space-y-6">
+        <div class="grid sm:grid-cols-3 gap-3">
+          <button type="button" data-provider-select="openai" class="flex items-center justify-between gap-3 p-4 rounded-2xl border border-white/10 bg-white/5 text-white/70">
+            <span class="font-black">OpenAI</span>
+            <span class="text-xs opacity-60">gpt-4o-mini</span>
+          </button>
+          <button type="button" data-provider-select="openrouter" class="flex items-center justify-between gap-3 p-4 rounded-2xl border border-white/10 bg-white/5 text-white/70">
+            <span class="font-black">OpenRouter</span>
+            <span class="text-xs opacity-60">Router + GPT</span>
+          </button>
+          <button type="button" data-provider-select="gemini" class="flex items-center justify-between gap-3 p-4 rounded-2xl border border-white/10 bg-white/5 text-white/70">
+            <span class="font-black">Gemini</span>
+            <span class="text-xs opacity-60">1.5 Flash</span>
+          </button>
+        </div>
+
+        <div class="p-6 rounded-[1.5rem] bg-white/5 border border-white/10 space-y-4">
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <p class="text-xs uppercase tracking-[0.25em] text-white/40">Aktiver Provider</p>
+              <p class="text-lg font-black" id="activeProviderLabel">OPENAI</p>
+            </div>
+            <div class="text-right text-sm text-white/60">
+              <p class="uppercase text-[10px] tracking-[0.25em]">Key-Status</p>
+              <p id="activeKey" class="font-black text-emerald-300">Kein Schlüssel hinterlegt</p>
+            </div>
+          </div>
+          <div class="grid md:grid-cols-3 gap-4">
+            <div class="space-y-2">
+              <label class="text-xs uppercase tracking-[0.25em] text-white/40">OpenAI Key</label>
+              <input data-key-input="openai" type="password" class="w-full px-4 py-3 rounded-2xl bg-black/40 border border-white/10 focus:border-emerald-400/60 outline-none" placeholder="sk-..." />
+              <button data-save-key="openai" class="w-full px-4 py-3 rounded-2xl bg-white text-black font-black tracking-tight hover:scale-[1.01] transition">Speichern</button>
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs uppercase tracking-[0.25em] text-white/40">OpenRouter Key</label>
+              <input data-key-input="openrouter" type="password" class="w-full px-4 py-3 rounded-2xl bg-black/40 border border-white/10 focus:border-emerald-400/60 outline-none" placeholder="sk-or-..." />
+              <button data-save-key="openrouter" class="w-full px-4 py-3 rounded-2xl bg-white text-black font-black tracking-tight hover:scale-[1.01] transition">Speichern</button>
+            </div>
+            <div class="space-y-2">
+              <label class="text-xs uppercase tracking-[0.25em] text-white/40">Gemini Key</label>
+              <input data-key-input="gemini" type="password" class="w-full px-4 py-3 rounded-2xl bg-black/40 border border-white/10 focus:border-emerald-400/60 outline-none" placeholder="AI..." />
+              <button data-save-key="gemini" class="w-full px-4 py-3 rounded-2xl bg-white text-black font-black tracking-tight hover:scale-[1.01] transition">Speichern</button>
+            </div>
+          </div>
+          <p class="text-xs text-white/50 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Schlüssel bleiben lokal im Browser gespeichert.</p>
+        </div>
+      </div>
+
+      <div id="panel-prefs" class="hidden space-y-6">
+        <div class="grid md:grid-cols-2 gap-4">
+          <label class="flex items-center gap-3 p-4 rounded-2xl border border-white/10 bg-white/5">
+            <input type="checkbox" class="prefToggle w-5 h-5" data-pref="autosave" />
+            <div>
+              <p class="font-black">Autosave</p>
+              <p class="text-sm opacity-60">Zwischenspeichern im Hintergrund.</p>
+            </div>
+          </label>
+          <label class="flex items-center gap-3 p-4 rounded-2xl border border-white/10 bg-white/5">
+            <input type="checkbox" class="prefToggle w-5 h-5" data-pref="liveStats" />
+            <div>
+              <p class="font-black">Live-Stats</p>
+              <p class="text-sm opacity-60">Wort- und XP-Zähler live aktualisieren.</p>
+            </div>
+          </label>
+          <label class="flex items-center gap-3 p-4 rounded-2xl border border-white/10 bg-white/5">
+            <input type="checkbox" class="prefToggle w-5 h-5" data-pref="stealthMode" />
+            <div>
+              <p class="font-black">Stealth Mode</p>
+              <p class="text-sm opacity-60">Reduzierte Animationen & diskrete Badges.</p>
+            </div>
+          </label>
+          <label class="flex items-center gap-3 p-4 rounded-2xl border border-white/10 bg-white/5">
+            <input type="checkbox" class="prefToggle w-5 h-5" data-pref="tips" />
+            <div>
+              <p class="font-black">Inline-Tipps</p>
+              <p class="text-sm opacity-60">Kurze Hinweise im Terminal anzeigen.</p>
+            </div>
+          </label>
+        </div>
+        <button id="savePrefs" class="w-full px-5 py-4 rounded-2xl bg-emerald-500 text-black font-black tracking-tight hover:scale-[1.01] transition">Einstellungen speichern</button>
+      </div>
     </div>
   </div>
 
@@ -220,14 +318,19 @@
       theme: 'nebula',
       isLoading: false,
       editorText: '',
-      apiKey: '',
+      apiKeys: { openai: '', openrouter: '', gemini: '' },
       provider: 'openai',
+      settingsTab: 'themes',
+      preferences: { autosave: true, liveStats: true, stealthMode: false, tips: true },
       terminalHistory: [
         { type: 'sys', text: 'HYPER_DRIVE_INIT: v4.1.0-STABLE' },
         { type: 'sys', text: 'KERNEL_STATUS: OPTIMIZED' },
         { type: 'info', text: 'Bugfixes angewendet. SUDO_AI ist bereit.' }
       ]
     };
+
+    const defaultApiKeys = { openai: '', openrouter: '', gemini: '' };
+    let tipsShown=false;
 
     const themeSpecs = {
       nebula: { name:'NEBULA PRIME', bgClass:'bg-[#050505]', panelClass:'bg-white/5 backdrop-blur-3xl border-white/10 rounded-[3rem]', accent:'text-violet-500', font:'font-sans' },
@@ -248,16 +351,42 @@
     const qs = (s) => document.querySelector(s);
     const el = (tag, cls='') => { const n = document.createElement(tag); if (cls) n.className = cls; return n; };
     const maskKey = (key='') => key.length>6 ? `${key.slice(0,3)}...${key.slice(-2)}` : (key||'').replace(/./g,'*');
+    const getActiveApiKey = () => state.apiKeys[state.provider] || '';
     const loadApiKey = () => {
       try{
-        const saved=localStorage.getItem('enti_api_key');
-        if(saved){ state.apiKey=saved; pushTerminal({type:'info', text:`API_KEY_LOADED: ${maskKey(saved)}`}); }
+        const savedBundle=localStorage.getItem('enti_api_keys');
+        if(savedBundle){
+          const parsed=JSON.parse(savedBundle);
+          state.apiKeys={...defaultApiKeys, ...parsed};
+          const keysLoaded=Object.entries(state.apiKeys).filter(([_,v])=>v).map(([k])=>k.toUpperCase());
+          if(keysLoaded.length) pushTerminal({type:'info', text:`API_KEYS_LOADED: ${keysLoaded.join(', ')}`});
+        } else {
+          const legacy=localStorage.getItem('enti_api_key');
+          if(legacy){
+            state.apiKeys.openai=legacy;
+            pushTerminal({type:'info', text:`API_KEY_LOADED: ${maskKey(legacy)}`});
+          }
+        }
       }catch(e){ pushTerminal({type:'err', text:'LOCAL_STORAGE_ERROR: Kann Schlüssel nicht lesen.'}); }
       try{
         const p=localStorage.getItem('enti_api_provider');
-        if(p==='openrouter' || p==='openai'){ state.provider=p; pushTerminal({type:'info', text:`PROVIDER_SET: ${p.toUpperCase()}`}); }
+        if(p==='openrouter' || p==='openai' || p==='gemini'){ state.provider=p; pushTerminal({type:'info', text:`PROVIDER_SET: ${p.toUpperCase()}`}); }
       }catch(e){ pushTerminal({type:'err', text:'LOCAL_STORAGE_ERROR: Provider konnte nicht gelesen werden.'}); }
+      try{
+        const pref=localStorage.getItem('enti_preferences');
+        if(pref) state.preferences={...state.preferences, ...JSON.parse(pref)};
+      }catch(e){ pushTerminal({type:'err', text:'LOCAL_STORAGE_ERROR: Einstellungen konnten nicht geladen werden.'}); }
     };
+
+    function saveApiKeys(){
+      try{ localStorage.setItem('enti_api_keys', JSON.stringify(state.apiKeys)); }
+      catch(err){ pushTerminal({type:'err', text:'LOCAL_STORAGE_ERROR: Schlüssel konnten nicht gespeichert werden.'}); }
+    }
+
+    function savePreferences(){
+      try{ localStorage.setItem('enti_preferences', JSON.stringify(state.preferences)); }
+      catch(err){ pushTerminal({type:'err', text:'LOCAL_STORAGE_ERROR: Einstellungen konnten nicht gespeichert werden.'}); }
+    }
 
     function nowHHMM(){ return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
     function computeMetrics(text){
@@ -274,6 +403,7 @@
     function openApiModal(){
       const modal=qs('#apiModal'); if(!modal) return;
       modal.classList.remove('hidden'); modal.classList.add('flex');
+      renderApiModal();
       setTimeout(()=>{ const input=qs('#apiInput'); if(input) input.focus(); }, 60);
     }
     function closeApiModal(){
@@ -282,8 +412,9 @@
     }
 
     async function sudoAI(prompt){
-      if(!state.apiKey){
-        pushTerminal({type:'err', text:'API_KEY_REQUIRED: Bitte zuerst einen API-Key eintragen.'});
+      const apiKey=getActiveApiKey();
+      if(!apiKey){
+        pushTerminal({type:'err', text:'API_KEY_REQUIRED: Bitte zuerst einen API-Key für den aktiven Provider eintragen.'});
         openApiModal();
         render();
         return;
@@ -294,30 +425,45 @@
       const current=qs('#editor').value||'';
       try{
         const provider=state.provider||'openai';
-        const endpoint = (provider==='openrouter') ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
-        const headers = {
-          'Content-Type':'application/json',
-          'Authorization':`Bearer ${state.apiKey}`
-        };
-        if(provider==='openrouter'){
-          headers['HTTP-Referer']= (typeof location!=='undefined' && location.origin) ? location.origin : 'http://localhost';
-          headers['X-Title']='ENTI_ENGINE';
-        }
-        const res=await fetch(endpoint,{
-          method:'POST',
-          headers,
-          body:JSON.stringify({
+        let endpoint='';
+        let options={ method:'POST', headers:{}, body:null };
+
+        if(provider==='gemini'){
+          endpoint=`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${encodeURIComponent(apiKey)}`;
+          options.headers={'Content-Type':'application/json'};
+          options.body=JSON.stringify({
+            contents:[{ role:'user', parts:[{ text:`${prompt}\n\nAktueller Editor-Inhalt:\n${current||'(leer)'}` }]}],
+            generationConfig:{ temperature:0.35 }
+          });
+        } else {
+          endpoint = (provider==='openrouter') ? 'https://openrouter.ai/api/v1/chat/completions' : 'https://api.openai.com/v1/chat/completions';
+          options.headers={
+            'Content-Type':'application/json',
+            'Authorization':`Bearer ${apiKey}`
+          };
+          if(provider==='openrouter'){
+            options.headers['HTTP-Referer']= (typeof location!=='undefined' && location.origin) ? location.origin : 'http://localhost';
+            options.headers['X-Title']='ENTI_ENGINE';
+          }
+          options.body=JSON.stringify({
             model: provider==='openrouter' ? 'openai/gpt-4o-mini' : 'gpt-4o-mini',
             temperature:0.35,
             messages:[
               { role:'system', content:'Du bist ENTI_ENGINE, ein präziser Schreib- und Übersetzungsassistent. Antworte kurz und in klaren Sätzen.' },
               { role:'user', content:`${prompt}\n\nAktueller Editor-Inhalt:\n${current||'(leer)'}` }
             ]
-          })
-        });
+          });
+        }
+        const res=await fetch(endpoint, options);
         if(!res.ok) throw new Error(`HTTP ${res.status}`);
         const data=await res.json();
-        const answer=(data?.choices?.[0]?.message?.content||'').trim();
+        let answer='';
+        if(provider==='gemini'){
+          const parts=data?.candidates?.[0]?.content?.parts||[];
+          answer=parts.map(p=>p.text||'').join(' ').trim();
+        } else {
+          answer=(data?.choices?.[0]?.message?.content||'').trim();
+        }
         if(!answer) throw new Error('Leere Antwort erhalten.');
         qs('#editor').value=answer;
         state.editorText=answer;
@@ -388,6 +534,12 @@
         (state.theme==='minecraft') ? 'px-5 py-2 rounded-full border bg-white border-black text-black'
         : (state.theme==='void') ? 'px-5 py-2 rounded-full border border-indigo-400/50 bg-indigo-500/10 text-indigo-300'
         : 'px-5 py-2 rounded-full border border-violet-500/30 text-violet-400 bg-violet-500/5';
+      if(state.preferences.stealthMode){
+        qs('#statusDot').classList.add('animate-none','opacity-60');
+        qs('#secureBadge').classList.add('opacity-60');
+      } else {
+        qs('#secureBadge').classList.remove('opacity-60');
+      }
 
       const nav=qs('#topNav');
       if(state.theme==='minecraft'){
@@ -509,12 +661,26 @@
     }
 
     function render(){
-      const m=computeMetrics(qs('#editor').value||'');
-      qs('#words').textContent=m.words;
-      qs('#xp').textContent=m.xp;
-      renderHearts(m);
+      const editorValue=qs('#editor').value||'';
+      state.editorText=editorValue;
+      const m=computeMetrics(editorValue);
+      if(state.preferences.liveStats){
+        qs('#words').textContent=m.words;
+        qs('#xp').textContent=m.xp;
+        renderHearts(m);
+      } else {
+        qs('#words').textContent='--';
+        qs('#xp').textContent='--';
+        qs('#hearts').innerHTML='<div class="text-[10px] uppercase tracking-[0.3em] opacity-40">Live-Stats pausiert</div>';
+      }
       applyTheme();
+      renderSettingsPanels();
+      renderApiModal();
       renderTerminal();
+      if(state.preferences.tips && !tipsShown){
+        tipsShown=true;
+        pushTerminal({type:'info', text:'TIP: Wechsle den Provider im Settings-Tab oder per \"provider gemini\".'});
+      }
       if(window.lucide) window.lucide.createIcons();
     }
 
@@ -522,16 +688,18 @@
       const cmd=(cmdRaw||'').trim(); if(!cmd) return;
       pushTerminal({type:'user', text:`root@enti:~$ ${cmd}`});
       const lower=cmd.toLowerCase();
-      if(lower==='help') pushTerminal({type:'info', text:"Commands: help | clear | stats | provider <openai|openrouter> | theme <nebula|minecraft|kernel|cyber|void|aurora|solar|noir|lagoon|dusk|mech|sand|neon> | sudo ai <prompt>"});
+      if(lower==='help') pushTerminal({type:'info', text:"Commands: help | clear | stats | provider <openai|openrouter|gemini> | theme <nebula|minecraft|kernel|cyber|void|aurora|solar|noir|lagoon|dusk|mech|sand|neon> | sudo ai <prompt>"});
       else if(lower==='clear') state.terminalHistory=[];
       else if(lower.startsWith('sudo ai ')) sudoAI(cmd.substring(8));
       else if(lower.startsWith('provider ')){
         const p=lower.split(/\s+/)[1];
-        if(p==='openai'||p==='openrouter'){
+        if(p==='openai'||p==='openrouter'||p==='gemini'){
           state.provider=p;
           try{ localStorage.setItem('enti_api_provider', p); }catch(err){ pushTerminal({type:'err', text:'LOCAL_STORAGE_ERROR: Provider konnte nicht gespeichert werden.'}); }
           pushTerminal({type:'sys', text:`PROVIDER_SET: ${p.toUpperCase()}`});
-        } else pushTerminal({type:'err', text:"PROVIDER_ERROR: Nutze 'openai' oder 'openrouter'."});
+          renderSettingsPanels();
+          renderApiModal();
+        } else pushTerminal({type:'err', text:"PROVIDER_ERROR: Nutze 'openai', 'openrouter' oder 'gemini'."});
       }
       else if(lower.startsWith('theme ')){
         const t=lower.split(/\s+/)[1];
@@ -556,24 +724,123 @@
         grid.appendChild(btn);
       });
     }
-    function openModal(){ buildThemeGrid(); qs('#modal').classList.remove('hidden'); qs('#modal').classList.add('flex'); render(); }
+    function renderProviderButtons(){
+      document.querySelectorAll('[data-provider-select]').forEach(btn=>{
+        const p=btn.getAttribute('data-provider-select');
+        const isActive=state.provider===p;
+        btn.classList.toggle('border-emerald-400', isActive);
+        btn.classList.toggle('bg-emerald-500/10', isActive);
+        btn.classList.toggle('text-white', isActive);
+        btn.classList.toggle('border-white/10', !isActive);
+        btn.classList.toggle('bg-white/5', !isActive);
+        btn.classList.toggle('text-white/70', !isActive);
+      });
+    }
+
+    function renderSettingsPanels(){
+      const tabs=['themes','api','prefs'];
+      tabs.forEach(tab=>{
+        const btn=qs(`#tab-${tab}`);
+        const panel=qs(`#panel-${tab}`);
+        if(btn){
+          btn.className = `px-4 py-3 rounded-2xl border transition ${state.settingsTab===tab?'bg-white text-black font-black border-white':'bg-white/5 border-white/10 text-white/70 hover:border-white/30'}`;
+        }
+        if(panel){
+          if(state.settingsTab===tab) panel.classList.remove('hidden'); else panel.classList.add('hidden');
+        }
+      });
+      renderProviderButtons();
+      const activeLabel=qs('#activeProviderLabel'); if(activeLabel) activeLabel.textContent=(state.provider||'openai').toUpperCase();
+      const activeKeyDisplay=qs('#activeKey'); if(activeKeyDisplay){ const k=getActiveApiKey(); activeKeyDisplay.textContent=k?maskKey(k):'Kein Schlüssel hinterlegt'; }
+      document.querySelectorAll('[data-key-input]').forEach(inp=>{ const p=inp.getAttribute('data-key-input'); inp.value=state.apiKeys[p]||''; });
+      document.querySelectorAll('.prefToggle').forEach(toggle=>{ const pref=toggle.getAttribute('data-pref'); toggle.checked=!!state.preferences[pref]; });
+    }
+
+    function renderApiModal(){
+      renderProviderButtons();
+      const input=qs('#apiInput'); if(input) input.value=getActiveApiKey()||'';
+      const title=qs('#apiTitle'); if(title) title.textContent=`API-Key für ${state.provider.toUpperCase()}`;
+    }
+
+    function loadDraft(){
+      try{
+        const draft=localStorage.getItem('enti_editor_draft');
+        if(draft){
+          const editor=qs('#editor'); if(editor) editor.value=draft;
+          state.editorText=draft;
+          pushTerminal({type:'info', text:'DRAFT_LOADED: Letzter Stand wiederhergestellt.'});
+        }
+      }catch(err){ pushTerminal({type:'err', text:'LOCAL_STORAGE_ERROR: Draft konnte nicht geladen werden.'}); }
+    }
+
+    function openModal(){ buildThemeGrid(); qs('#modal').classList.remove('hidden'); qs('#modal').classList.add('flex'); renderSettingsPanels(); render(); }
     function closeModal(){ qs('#modal').classList.add('hidden'); qs('#modal').classList.remove('flex'); }
 
     qs('#settingsBtn').addEventListener('click', openModal);
     qs('#closeModal').addEventListener('click', closeModal);
     qs('#modal').addEventListener('click', (e)=>{ if(e.target.id==='modal') closeModal(); });
     qs('#terminalForm').addEventListener('submit',(e)=>{ e.preventDefault(); const inp=qs('#terminalInput'); const cmd=inp.value; inp.value=''; executeCommand(cmd); });
-    qs('#editor').addEventListener('input',(e)=>{ state.editorText=e.target.value||''; render(); });
+    qs('#editor').addEventListener('input',(e)=>{
+      state.editorText=e.target.value||'';
+      if(state.preferences.autosave){
+        try{ localStorage.setItem('enti_editor_draft', state.editorText); }catch(err){ pushTerminal({type:'err', text:'LOCAL_STORAGE_ERROR: Draft konnte nicht gespeichert werden.'}); }
+      }
+      render();
+    });
     const apiForm=qs('#apiForm');
     if(apiForm){
       apiForm.addEventListener('submit',(e)=>{
         e.preventDefault();
         const key=(qs('#apiInput').value||'').trim();
         if(!key){ pushTerminal({type:'err', text:'API_KEY_ERROR: Kein Schlüssel angegeben.'}); render(); return; }
-        state.apiKey=key;
-        try{ localStorage.setItem('enti_api_key', key); }catch(err){ pushTerminal({type:'err', text:'LOCAL_STORAGE_ERROR: Schlüssel konnte nicht gespeichert werden.'}); }
+        state.apiKeys[state.provider]=key;
+        saveApiKeys();
         closeApiModal();
         pushTerminal({type:'info', text:`API_KEY_SET: ${maskKey(key)}`});
+        render();
+      });
+    }
+    document.querySelectorAll('[data-provider-select]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const p=btn.getAttribute('data-provider-select');
+        if(!p) return;
+        state.provider=p;
+        try{ localStorage.setItem('enti_api_provider', p); }catch(err){ pushTerminal({type:'err', text:'LOCAL_STORAGE_ERROR: Provider konnte nicht gespeichert werden.'}); }
+        pushTerminal({type:'sys', text:`PROVIDER_SET: ${p.toUpperCase()}`});
+        render();
+      });
+    });
+    ['themes','api','prefs'].forEach(tab=>{
+      const btn=qs(`#tab-${tab}`);
+      if(btn){
+        btn.addEventListener('click',()=>{ state.settingsTab=tab; render(); });
+      }
+    });
+    document.querySelectorAll('[data-save-key]').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        const p=btn.getAttribute('data-save-key');
+        const input=document.querySelector(`[data-key-input=\"${p}\"]`);
+        if(!p || !input) return;
+        const key=(input.value||'').trim();
+        if(!key){ pushTerminal({type:'err', text:`API_KEY_ERROR: Kein Schlüssel für ${p} angegeben.`}); render(); return; }
+        state.apiKeys[p]=key;
+        saveApiKeys();
+        pushTerminal({type:'info', text:`API_KEY_SET_${p.toUpperCase()}: ${maskKey(key)}`});
+        render();
+      });
+    });
+    document.querySelectorAll('.prefToggle').forEach(toggle=>{
+      toggle.addEventListener('change',()=>{
+        const pref=toggle.getAttribute('data-pref');
+        if(!pref) return;
+        state.preferences[pref]=toggle.checked;
+      });
+    });
+    const prefsBtn=qs('#savePrefs');
+    if(prefsBtn){
+      prefsBtn.addEventListener('click',()=>{
+        savePreferences();
+        pushTerminal({type:'sys', text:'PREFS_SAVED: Einstellungen aktualisiert.'});
         render();
       });
     }
@@ -586,8 +853,9 @@
     });
     qs('#editor').value='';
     loadApiKey();
+    loadDraft();
     render();
-    if(!state.apiKey) setTimeout(openApiModal, 200);
+    if(!getActiveApiKey()) setTimeout(openApiModal, 200);
   </script>
 </body>
 </html>

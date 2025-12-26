@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mission 2026 - V74.3 Pure HTML</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;700&family=Fira+Code:wght@300;500&display=swap');
+
+        :root {
+            --p: #00f2ff; 
+            --s: #7000ff; 
+            --bg: #010103; 
+        }
+
+        body.theme-gold { --p: #ffcc00; --s: #ff8800; }
+        body.theme-pink { --p: #ff007a; --s: #7000ff; }
+        body.theme-green { --p: #00ff88; --s: #0088ff; }
+        body.theme-matrix { --p: #00ff41; --s: #003b00; --bg: #000500; }
+        body.theme-cyberpunk { --p: #fcee0a; --s: #ff003c; --bg: #020205; }
+        body.theme-rainbow { animation: rainbow-bg 5s infinite linear; }
+        
+        @keyframes rainbow-bg {
+            0% { --p: #ff0000; } 25% { --p: #00ff00; } 50% { --p: #00ffff; } 75% { --p: #ff00ff; } 100% { --p: #ff0000; }
+        }
+
+        /* PANIC ANIMATIONS */
+        @keyframes glitch-soft {
+            0% { transform: translate(0); }
+            50% { transform: translate(2px, -1px); filter: hue-rotate(10deg); }
+            100% { transform: translate(0); }
+        }
+
+        @keyframes glitch-hard {
+            0% { transform: translate(0); clip-path: inset(10% 0 30% 0); }
+            20% { transform: translate(-15px, 10px); clip-path: inset(40% 0 10% 0); filter: invert(1); }
+            40% { transform: translate(15px, -10px); clip-path: inset(20% 0 50% 0); }
+            60% { transform: translate(-20px, 0); clip-path: inset(80% 0 5% 0); }
+            100% { transform: translate(0); }
+        }
+
+        .p-glitch-light { animation: glitch-soft 2s infinite; opacity: 0.95; }
+        .p-glitch-heavy { animation: glitch-hard 0.15s infinite; opacity: 0.9; }
+        .p-void-tear { animation: void-tear 0.08s infinite; filter: invert(1) hue-rotate(180deg) saturate(2); }
+        
+        .p-zero-point { filter: blur(5px) grayscale(0.5) contrast(2); }
+        
+        .p-absolute-zero { 
+            filter: contrast(200) brightness(50) saturate(0) !important;
+            animation: final-shatter-fixed 0.5s infinite;
+        }
+
+        @keyframes final-shatter-fixed {
+            0% { transform: translate(2px, 2px); }
+            50% { transform: translate(-2px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        @keyframes void-tear {
+            0%, 100% { clip-path: inset(0); transform: translateX(0) skew(0deg); }
+            33% { clip-path: inset(15% 0 75% 0); transform: translateX(-30px) skew(5deg); }
+            66% { clip-path: inset(65% 0 15% 0); transform: translateX(30px) skew(-5deg); }
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+            background: var(--bg); font-family: 'Inter', sans-serif; color: white;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        #canvas { position: absolute; top: 0; left: 0; z-index: 1; pointer-events: none; }
+
+        .stage {
+            position: relative; z-index: 10; width: 100%; height: 100vh;
+            display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;
+            gap: 12px; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .main-logo { 
+            width: 90px; filter: drop-shadow(0 0 15px var(--p));
+            cursor: pointer; transition: 0.3s; user-select: none; z-index: 20;
+        }
+
+        .xp-display-container {
+            text-align: center; background: rgba(255,255,255,0.02); 
+            padding: 8px 20px; border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1); cursor: pointer; min-width: 200px;
+        }
+        .xp-val { font-family: 'Orbitron'; font-size: 22px; color: var(--p); text-shadow: 0 0 15px var(--p); font-weight: 900; }
+        
+        .countdown-grid { 
+            display: grid; grid-template-columns: repeat(4, 1fr); 
+            gap: 10px; width: 100%; max-width: 450px;
+        }
+        .v { display: block; font-family: 'Orbitron'; font-size: 2.2rem; font-weight: 900; text-align: center; }
+
+        .terminal-container {
+            width: 100%; max-width: 450px; background: rgba(0,0,0,0.9);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 8px 8px 0 0; overflow: hidden;
+        }
+        #terminal-content {
+            height: 60px; font-family: 'Fira Code', monospace; font-size: 10px; color: var(--p);
+            padding: 8px; overflow-y: auto; display: flex; flex-direction: column-reverse; gap: 4px;
+        }
+
+        .info-panel {
+            width: 100%; max-width: 450px; background: rgba(10,10,20,0.8);
+            border: 1px solid rgba(255,255,255,0.1); border-top: none;
+            border-radius: 0 0 8px 8px; padding: 10px; box-sizing: border-box;
+            font-size: 9px; font-family: 'Orbitron'; color: rgba(255,255,255,0.4);
+        }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .info-item { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 2px 0; }
+        .info-active { color: var(--p); text-shadow: 0 0 5px var(--p); font-weight: 900; border-color: var(--p); }
+
+        .side-btns { position: fixed; right: 15px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 10px; z-index: 100; }
+        .btn { 
+            width: 44px; height: 44px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); 
+            background: rgba(10,10,15,0.95); color: white; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; transition: 0.3s; font-size: 18px;
+        }
+        .btn:hover { border-color: var(--p); box-shadow: 0 0 15px var(--p); transform: scale(1.05); }
+
+        #final-screen {
+            position: fixed; inset: 0; background: white; z-index: 100000;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; font-family: 'Orbitron'; color: black;
+        }
+
+        #modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(15px); }
+        .modal-win { width: 90%; max-width: 500px; padding: 25px; border: 1px solid var(--p); background: #050507; border-radius: 16px; max-height: 80vh; overflow-y: auto; }
+
+        .progress-bar-container { position: fixed; bottom: 0; left: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.05); }
+        .progress-fill { height: 100%; background: var(--p); width: 0%; box-shadow: 0 0 15px var(--p); }
+
+        .float-xp { position: fixed; pointer-events: none; font-family: 'Orbitron'; font-weight: 900; animation: xp-f 0.7s forwards; z-index: 5001; }
+        @keyframes xp-f { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-100px); } }
+
+        #test-indicator { position: fixed; top: 10px; left: 10px; font-family: 'Fira Code'; font-size: 10px; color: #ff0055; display: none; z-index: 1000; text-transform: uppercase; }
+        
+        .test-input-field {
+            background: rgba(255,255,255,0.05); border: 1px solid var(--p); color: white;
+            padding: 10px; border-radius: 8px; font-family: 'Fira Code'; width: 100%;
+            margin: 15px 0; outline: none; text-align: center; font-size: 18px;
+        }
+
+        .reboot-btn {
+            margin-top: 40px; padding: 12px 30px; background: black; color: white;
+            border: 2px solid black; font-family: 'Orbitron'; cursor: pointer;
+            font-weight: 900; transition: 0.3s; letter-spacing: 2px;
+        }
+        .reboot-btn:hover { background: white; color: black; transform: scale(1.1); }
+    </style>
+</head>
+<body id="body">
+
+<canvas id="canvas"></canvas>
+<div id="test-indicator">!! TEST MODUS AKTIV (ENTE) !!</div>
+
+<div id="final-screen">
+    <div style="font-size: 80px; margin-bottom: 20px; font-weight: 900;">0</div>
+    <h1 style="letter-spacing: 15px; font-weight: 900;">MISSION 2026</h1>
+    <p style="opacity: 0.6; font-size: 14px; margin-top: 10px;">SYSTEM ABSOLUTE ZERO ACHIEVED</p>
+    <button class="reboot-btn" onclick="f.reboot()">SYSTEM REBOOT</button>
+    <div style="margin-top: 60px; font-size: 12px; letter-spacing: 2px;">PROJEKT VON MIKRO 26</div>
+</div>
+
+<div class="side-btns" id="ui-btns">
+    <button class="btn" onclick="f.modal('shop')" title="Shop">💎</button>
+    <button class="btn" onclick="f.nextTheme()" title="Design">🎨</button>
+    <button class="btn" id="boost-btn" onclick="f.boost()" title="Warp Drive">🚀</button>
+    <button class="btn" id="overdrive-btn" onclick="f.specialAction('overdrive')" title="Overdrive">
+        ⚡<div id="od-timer-display" style="position:absolute; bottom:-18px; font-size:8px; font-weight:900; color:var(--p);"></div>
+    </button>
+</div>
+
+<div class="stage" id="main-stage">
+    <div class="xp-display-container" id="ui-xp" onclick="f.click(event)">
+        <div id="lvl-tag" style="font-family:Orbitron; font-size:9px; background:var(--p); color:black; padding:2px 8px; border-radius:4px; font-weight:900; margin-bottom:5px; display:inline-block;">LVL 1</div>
+        <div class="xp-val" id="xp-display">0 XP</div>
+        <div id="xp-next" style="font-size:9px; opacity:0.6; font-family:Orbitron; margin-top:6px;">ZIEL: 500 XP</div>
+    </div>
+
+    <img src="https://image.jimcdn.com/app/cms/image/transf/none/path/s0265fddf63895aad/image/i230c837b21121d95/version/1766777777/image.png" 
+         class="main-logo" id="main-logo" onclick="f.click(event)">
+
+    <div class="countdown-grid" id="ui-timer">
+        <div class="time-box"><span class="v" id="d">00</span><span style="font-size:8px; opacity:0.5; font-family:Orbitron;">TAGE</span></div>
+        <div class="time-box"><span class="v" id="h">00</span><span style="font-size:8px; opacity:0.5; font-family:Orbitron;">STD</span></div>
+        <div class="time-box"><span class="v" id="m">00</span><span style="font-size:8px; opacity:0.5; font-family:Orbitron;">MIN</span></div>
+        <div class="time-box"><span class="v" id="s">00</span><span style="font-size:8px; opacity:0.5; font-family:Orbitron;">SEK</span></div>
+    </div>
+
+    <div class="terminal-container" id="ui-term">
+        <div id="terminal-content"></div>
+        <div style="padding: 6px 12px; background: #08080a; display: flex; align-items: center; border-top: 1px solid rgba(255,255,255,0.05);">
+            <span style="color:var(--p); font-family:'Fira Code'; font-size:11px; margin-right:8px;">></span>
+            <input type="text" id="t-input" style="background:transparent; border:none; color:white; outline:none; font-family:'Fira Code'; font-size:11px; width:100%;" placeholder="Systemzugriff..." autocomplete="off">
+        </div>
+    </div>
+
+    <div class="info-panel">
+        <div style="margin-bottom: 5px; color: var(--p); border-bottom: 1px solid var(--p); padding-bottom: 2px;">CORRUPTION STATUS</div>
+        <div class="info-grid">
+            <div class="info-item" id="info-26"><span>STAGE 26 (INSTABLE)</span> <span>-1 Std</span></div>
+            <div class="info-item" id="info-heavy"><span>STAGE 27 (CRITICAL)</span> <span>-60s</span></div>
+            <div class="info-item" id="info-28"><span>STAGE 28 (COLLAPSE)</span> <span>-10s</span></div>
+            <div class="info-item" id="info-30"><span>STAGE 30 (ZERO)</span> <span>-2.0s</span></div>
+        </div>
+    </div>
+    
+    <div style="font-size:8px; letter-spacing:4px; opacity:0.3; margin-top:8px; font-family:Orbitron;" id="sys-status">V74.3 // SYSTEM: STABLE</div>
+
+    <div class="progress-bar-container">
+        <div class="progress-fill" id="p-fill"></div>
+    </div>
+</div>
+
+<div id="modal" onclick="if(event.target==this) f.modal()">
+    <div class="modal-win" id="modal-content"></div>
+</div>
+
+<script>
+    // System Variablen
+    let testTimeOffset = 0;
+    let isTestMode = false;
+    let corruptionLevel = 0;
+
+    const targetDate = new Date("January 1, 2026 00:00:00").getTime();
+    const startDate = new Date("January 1, 2025 00:00:00").getTime();
+    
+    let canvas, ctx, stars = [];
+    let xp = 0, level = 1, aps = 0, mult = 1, warpActive = false;
+    let odEndTime = 0, themeIdx = 0;
+    const themes = ['', 'theme-gold', 'theme-pink', 'theme-green', 'theme-matrix', 'theme-cyberpunk', 'theme-rainbow'];
+
+    const items = [
+        { id: 1, name: 'Neural Overclock', cost: 100, m: 3, a: 0, d: "Klick-Boost." },
+        { id: 2, name: 'Quantum CPU', cost: 1200, m: 0, a: 80, d: "Auto-XP." },
+        { id: 3, name: 'Void Harvester', cost: 15000, m: 50, a: 500, d: "Dunkle Energie." },
+        { id: 4, name: 'Time Dilation', cost: 100000, m: 200, a: 2500, d: "Zeit-Streckung." },
+        { id: 5, name: 'Prestige Protocol', cost: 800000, m: 1000, a: 15000, d: "System-Upgrade." }
+    ];
+
+    const f = {
+        save: () => {
+            const data = { 
+                xp, level, aps, mult, themeIdx, odEndTime, 
+                counts: items.map(i => i.count || 0),
+                testTimeOffset, 
+                isTestMode,
+                corruptionLevel
+            };
+            localStorage.setItem('m26_v74_final', JSON.stringify(data));
+        },
+        load: () => {
+            const s = localStorage.getItem('m26_v74_final');
+            if(s) {
+                const d = JSON.parse(s);
+                xp = d.xp || 0; level = d.level || 1; aps = d.aps || 0; mult = d.mult || 1;
+                themeIdx = d.themeIdx || 0; odEndTime = d.odEndTime || 0;
+                testTimeOffset = d.testTimeOffset || 0;
+                isTestMode = d.isTestMode || false;
+                corruptionLevel = d.corruptionLevel || 0;
+
+                if(d.counts) d.counts.forEach((c, i) => items[i].count = c);
+                if(themes[themeIdx]) document.body.classList.add(themes[themeIdx]);
+                if(isTestMode) document.getElementById('test-indicator').style.display = 'block';
+            }
+        },
+        getXpNext: (l) => Math.floor(Math.pow(l, 2.4) * 500),
+        getPrice: (i) => {
+            let base = Math.floor(i.cost * Math.pow(1.6, i.count || 0));
+            // Preisschwankungen bei Korruption
+            if(corruptionLevel >= 1 && Math.random() < 0.1) return Math.floor(base * (Math.random() + 0.5));
+            return base;
+        },
+        click: (e) => {
+            let b = Date.now() < odEndTime ? 12 : 1;
+            let g = (level * 5 + mult) * b;
+            
+            // Korruptionseffekte auf Gewinn
+            if(corruptionLevel >= 1 && Math.random() < 0.05) g *= 0.1;
+            if(corruptionLevel >= 2) g *= (Math.random() * 5);
+
+            xp += g;
+            if(e && e.clientX) {
+                const el = document.createElement('div'); el.className = 'float-xp'; 
+                el.innerText = `+${Math.floor(corruptionLevel >= 2 ? Math.random()*999 : g)}`; 
+                el.style.left = e.clientX+'px'; el.style.top = e.clientY+'px';
+                el.style.color = corruptionLevel >= 2 ? '#ff0000' : (b > 1 ? '#ffea00' : 'var(--p)');
+                document.body.appendChild(el); setTimeout(() => el.remove(), 700);
+            }
+            f.checkLvl();
+            f.save();
+        },
+        checkLvl: () => {
+            let n = f.getXpNext(level);
+            while(xp >= n) { xp -= n; level++; f.log(`LEVEL UP: ${level}`, true); n = f.getXpNext(level); }
+        },
+        modal: (t) => {
+            if(t === 'shop' && corruptionLevel >= 1 && Math.random() < 0.2) {
+                f.log("ERROR: SHOP_ACCESS_DENIED (CORE_LATENCY)");
+                return;
+            }
+            const m = document.getElementById('modal'); const c = document.getElementById('modal-content');
+            m.style.display = t ? 'flex' : 'none';
+            if(t === 'shop') {
+                c.innerHTML = `<h2 style="font-family:Orbitron; color:var(--p); text-align:center;">${corruptionLevel >= 2 ? 'C0RRUPT_SH0P' : 'QUANTUM SHOP'}</h2>`;
+                items.forEach(i => {
+                    const p = f.getPrice(i); const can = xp >= p;
+                    c.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px; margin:5px 0; background:rgba(255,255,255,0.03); border-radius:10px; border:1px solid ${can?'var(--p)':'#222'};">
+                        <div style="font-size:10px;"><b>${corruptionLevel >= 2 ? '???' : i.name}</b> [v${i.count||0}]<br><small style="opacity:0.6">${i.d}</small></div>
+                        <button onclick="if(${can}) f.buy(${i.id}, ${p})" style="background:${can?'var(--p)':'#111'}; color:black; font-family:Orbitron; font-size:9px; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;">${p.toLocaleString()} XP</button>
+                    </div>`;
+                });
+            } else if(t === 'test') {
+                c.innerHTML = `<h2 style="font-family:Orbitron; color:#ff0055; text-align:center;">ENTE PROTOKOLL</h2>
+                <input type="number" id="test-seconds-input" class="test-input-field" placeholder="Sekunden bis Ziel">
+                <button class="btn" style="width:100%; margin-bottom:10px;" onclick="f.setTestTime(document.getElementById('test-seconds-input').value)">START</button>
+                <button class="btn" style="width:100%;" onclick="f.modal()">CANCEL</button>`;
+            }
+        },
+        setTestTime: (val) => {
+            const seconds = parseInt(val);
+            if(isNaN(seconds)) { 
+                testTimeOffset = 0; 
+                isTestMode = false; 
+                document.getElementById('test-indicator').style.display='none'; 
+            } else { 
+                testTimeOffset = targetDate - Date.now() - (seconds * 1000); 
+                isTestMode = true; 
+                document.getElementById('test-indicator').style.display='block'; 
+            }
+            f.modal();
+            f.save();
+        },
+        reboot: () => {
+            testTimeOffset = 0;
+            isTestMode = false;
+            corruptionLevel = 0;
+            localStorage.removeItem('m26_v74_final');
+            location.reload();
+        },
+        buy: (id, p) => {
+            const i = items.find(x => x.id === id);
+            if(xp >= p) { 
+                xp -= p; 
+                i.count = (i.count || 0) + 1; 
+                aps += i.a; 
+                mult += i.m; 
+                f.modal('shop'); 
+                f.save(); 
+            }
+        },
+        log: (m, imp = false) => {
+            const t = document.getElementById('terminal-content'); const d = document.createElement('div');
+            if(corruptionLevel >= 1 && Math.random() < 0.3) m = m.replace(/[A-E]/g, '0').replace(/[S-Z]/g, '#');
+            if(imp) d.style.color = 'var(--p)'; d.innerHTML = `<span>[SYS]</span> ${m}`;
+            t.prepend(d); if(t.childNodes.length > 20) t.lastChild.remove();
+        },
+        nextTheme: () => {
+            themes.forEach(t => { if(t) document.body.classList.remove(t); });
+            themeIdx = (themeIdx + 1) % themes.length;
+            if(themes[themeIdx]) document.body.classList.add(themes[themeIdx]);
+            f.save();
+        },
+        boost: () => { warpActive = !warpActive; document.getElementById('boost-btn').style.background = warpActive ? 'var(--p)' : ''; },
+        specialAction: (t) => {
+            if(t === 'overdrive') {
+                const cost = Math.floor(f.getXpNext(level) * 0.3);
+                if(xp >= cost && Date.now() > odEndTime) { 
+                    xp -= cost; 
+                    odEndTime = Date.now() + 120000; 
+                    f.log("OVERDRIVE AKTIVIERT"); 
+                    f.save(); 
+                }
+            }
+        }
+    };
+
+    function init() {
+        canvas = document.getElementById('canvas'); ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        for(let i=0; i<80; i++) stars.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, s:Math.random()*1.5+0.2});
+        
+        document.getElementById('t-input').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') {
+                const val = e.target.value.toUpperCase().trim();
+                if(corruptionLevel >= 1 && Math.random() < 0.15) { f.log(`CRITICAL: CMD_${val}_TIMED_OUT`); e.target.value = ''; return; }
+                if(val === 'ENTE') f.modal('test');
+                else f.log(`COMMAND: ${val}`);
+                e.target.value = '';
+            }
+        });
+        f.load();
+    }
+
+    function draw() {
+        ctx.fillStyle = corruptionLevel >= 2 ? "rgba(20,0,0,0.4)" : "rgba(1, 1, 3, 0.4)"; 
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+        stars.forEach(s => {
+            s.y += s.s * (warpActive ? 20 : 1); if(s.y > canvas.height) s.y = 0;
+            ctx.fillStyle = warpActive ? "var(--p)" : (corruptionLevel >= 2 ? "#ff0000" : "#fff"); 
+            ctx.fillRect(s.x, s.y, 1, warpActive ? 20 : 1);
+        });
+        requestAnimationFrame(draw);
+    }
+
+    // Auto-XP Loop
+    setInterval(() => { if(aps > 0) { const b = (Date.now() < odEndTime) ? 3 : 1; xp += (aps/10)*b; f.checkLvl(); } }, 100);
+
+    function update() {
+        const now = Date.now(); 
+        const realDiff = targetDate - now;
+        const diff = isTestMode ? (realDiff - testTimeOffset) : realDiff;
+
+        const stage = document.getElementById('main-stage');
+        const status = document.getElementById('sys-status');
+        stage.classList.remove('p-glitch-light', 'p-glitch-heavy', 'p-void-tear', 'p-zero-point', 'p-absolute-zero');
+        document.querySelectorAll('.info-item').forEach(el => el.classList.remove('info-active'));
+
+        if(diff <= 0) {
+            document.getElementById('final-screen').style.display = 'flex';
+            stage.style.display = 'none';
+        } else {
+            document.getElementById('final-screen').style.display = 'none';
+            stage.style.display = 'flex';
+
+            if(diff <= 3600000 && diff > 60000) {
+                corruptionLevel = 1;
+                stage.classList.add('p-glitch-light');
+                document.getElementById('info-26').classList.add('info-active');
+                status.innerText = "V74.3 // SYSTEM: INSTABLE";
+            } 
+            else if(diff <= 60000) {
+                corruptionLevel = 2;
+                stage.classList.add('p-glitch-heavy');
+                document.getElementById('info-heavy').classList.add('info-active');
+                status.innerText = "V74.3 // SYSTEM: CRITICAL_FAILURE";
+            } else {
+                corruptionLevel = 0;
+                status.innerText = "V74.3 // SYSTEM: STABLE";
+            }
+
+            if(diff <= 30000) stage.classList.add('p-void-tear');
+            if(diff <= 10000) stage.classList.add('p-zero-point');
+            if(diff <= 2000) stage.classList.add('p-absolute-zero');
+        }
+
+        // UI Update
+        document.getElementById('xp-display').innerText = Math.floor(xp).toLocaleString() + " XP";
+        document.getElementById('lvl-tag').innerText = `LVL ${level}`;
+        
+        document.getElementById('d').innerText = String(Math.max(0, Math.floor(diff/86400000))).padStart(2,'0');
+        document.getElementById('h').innerText = String(Math.max(0, Math.floor((diff/3600000)%24))).padStart(2,'0');
+        document.getElementById('m').innerText = String(Math.max(0, Math.floor((diff/60000)%60))).padStart(2,'0');
+        document.getElementById('s').innerText = String(Math.max(0, Math.floor(diff/1000)%60)).padStart(2,'0');
+
+        const prog = Math.min(100, ((now - startDate) / (targetDate - startDate)) * 100);
+        document.getElementById('p-fill').style.width = prog + "%";
+    }
+
+    window.onload = () => { init(); draw(); setInterval(update, 100); setInterval(f.save, 5000); };
+    window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+</script>
+</body>
+</html>

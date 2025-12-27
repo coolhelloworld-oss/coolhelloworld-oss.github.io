@@ -13,6 +13,7 @@
             --bg: #010103; 
             --bg2: #04040a;
             --glow: rgba(0, 242, 255, 0.3);
+            --panic: 0;
         }
 
         body.theme-gold { --p: #ffcc00; --s: #ff8800; }
@@ -51,6 +52,7 @@
         .p-glitch-light { animation: glitch-soft 2s infinite; opacity: 0.95; }
         .p-glitch-heavy { animation: glitch-hard 0.15s infinite; opacity: 0.9; }
         .p-void-tear { animation: void-tear 0.08s infinite; filter: invert(1) hue-rotate(180deg) saturate(2); }
+        .p-panic { animation: panic-pulse 1.1s infinite; }
         
         .p-zero-point { filter: blur(5px) grayscale(0.5) contrast(2); }
         
@@ -69,6 +71,39 @@
             0%, 100% { clip-path: inset(0); transform: translateX(0) skew(0deg); }
             33% { clip-path: inset(15% 0 75% 0); transform: translateX(-30px) skew(5deg); }
             66% { clip-path: inset(65% 0 15% 0); transform: translateX(30px) skew(-5deg); }
+        }
+        
+        @keyframes panic-pulse {
+            0%, 100% { transform: translate(0); filter: saturate(1.1); }
+            40% { transform: translate(1px, -2px) scale(1.01); filter: saturate(1.6) hue-rotate(8deg); }
+            60% { transform: translate(-2px, 1px); filter: saturate(1.3) hue-rotate(-6deg); }
+        }
+
+        .panic-overlay {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 50% 40%, rgba(255, 0, 80, calc(var(--panic) * 0.35)), transparent 60%),
+                linear-gradient(180deg, rgba(255, 0, 50, calc(var(--panic) * 0.25)), transparent 35%, rgba(0, 0, 0, calc(var(--panic) * 0.35)));
+            mix-blend-mode: screen;
+            opacity: calc(var(--panic) * 0.9);
+            z-index: 5;
+            transition: opacity 0.3s ease;
+        }
+
+        .panic-overlay::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(transparent 0 2px, rgba(255,255,255,0.06) 2px 3px);
+            opacity: calc(var(--panic) * 0.6);
+            animation: scanline 0.5s infinite linear;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(3px); }
         }
 
         body, html {
@@ -185,6 +220,7 @@
 <body id="body">
 
 <canvas id="canvas"></canvas>
+<div class="panic-overlay" aria-hidden="true"></div>
 <div id="test-indicator">!! TEST MODUS AKTIV (ENTE) !!</div>
 
 <div id="final-screen">
@@ -193,6 +229,7 @@
     <p style="opacity: 0.6; font-size: 14px; margin-top: 10px;">SYSTEM ABSOLUTE ZERO ACHIEVED</p>
     <button class="reboot-btn" onclick="f.reboot()">SYSTEM REBOOT</button>
     <div style="margin-top: 60px; font-size: 12px; letter-spacing: 2px;">PROJEKT VON MIKRO 26</div>
+    <div style="margin-top: 6px; font-size: 10px; letter-spacing: 2px; opacity: 0.6;">FROM MIKROLABS</div>
 </div>
 
 <div class="side-btns" id="ui-btns">
@@ -462,8 +499,9 @@
 
         const stage = document.getElementById('main-stage');
         const status = document.getElementById('sys-status');
-        stage.classList.remove('p-glitch-light', 'p-glitch-heavy', 'p-void-tear', 'p-zero-point', 'p-absolute-zero');
+        stage.classList.remove('p-glitch-light', 'p-glitch-heavy', 'p-void-tear', 'p-zero-point', 'p-absolute-zero', 'p-panic');
         document.querySelectorAll('.info-item').forEach(el => el.classList.remove('info-active'));
+        let panicLevel = 0;
 
         if(diff <= 0) {
             document.getElementById('final-screen').style.display = 'flex';
@@ -488,10 +526,13 @@
                 status.innerText = "V74.3 // SYSTEM: STABLE";
             }
 
-            if(diff <= 30000) stage.classList.add('p-void-tear');
-            if(diff <= 10000) stage.classList.add('p-zero-point');
-            if(diff <= 2000) stage.classList.add('p-absolute-zero');
+            if(diff <= 60000) panicLevel = 0.5;
+            if(diff <= 30000) { stage.classList.add('p-void-tear'); panicLevel = 0.7; }
+            if(diff <= 10000) { stage.classList.add('p-zero-point'); panicLevel = 0.9; }
+            if(diff <= 2000) { stage.classList.add('p-absolute-zero'); panicLevel = 1; }
+            if(panicLevel > 0) stage.classList.add('p-panic');
         }
+        document.documentElement.style.setProperty('--panic', panicLevel);
 
         // UI Update
         document.getElementById('xp-display').innerText = Math.floor(xp).toLocaleString() + " XP";

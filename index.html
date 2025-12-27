@@ -456,6 +456,83 @@
         }
     };
 
+    const getCountdownDiff = () => {
+        const now = Date.now();
+        const realDiff = targetDate - now;
+        return isTestMode ? (realDiff - testTimeOffset) : realDiff;
+    };
+
+    const formatCountdown = (diff) => {
+        const safe = Math.max(0, diff);
+        const d = Math.floor(safe / 86400000);
+        const h = Math.floor((safe / 3600000) % 24);
+        const m = Math.floor((safe / 60000) % 60);
+        const s = Math.floor((safe / 1000) % 60);
+        return `${String(d).padStart(2,'0')}d ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
+    };
+
+    const getThemeLabel = () => themes[themeIdx] ? themes[themeIdx].replace('theme-', '').toUpperCase() : 'DEFAULT';
+
+    const terminalHelpLines = [
+        "CORE: HELP, COMMANDS, STATUS, VERSION, TIME, DATE, UPTIME, SYSINFO, PROTOCOL",
+        "STATS: XP, LEVEL, APS, MULT, CORRUPTION, PANIC, COUNTDOWN, PROGRESS, STARS",
+        "ACTIONS: THEME, NEXTTHEME, THEMEIDX, THEMES, WARP, BOOST, OVERDRIVE, SHOP, TEST",
+        "TOOLS: SAVE, LOAD, CLEAR, PING, ECHO, TRACE, SCAN, DIAG, CORE, MAP, LOGS, CALIBRATE, ALIGN, SAFEMODE, REBOOT"
+    ];
+
+    const terminalCommands = {
+        HELP: { run: () => terminalHelpLines.slice().reverse().forEach(line => f.log(line)) },
+        COMMANDS: { run: () => terminalCommands.HELP.run() },
+        STATUS: { run: () => f.log(`STATUS: ${document.getElementById('sys-status').innerText}`) },
+        VERSION: { run: () => f.log("VERSION: V74.3") },
+        TIME: { run: () => f.log(`TIME: ${new Date().toLocaleTimeString('de-DE')}`) },
+        DATE: { run: () => f.log(`DATE: ${new Date().toLocaleDateString('de-DE')}`) },
+        UPTIME: { run: () => f.log(`UPTIME: ${Math.floor(performance.now() / 1000)}s`) },
+        XP: { run: () => f.log(`XP: ${Math.floor(xp).toLocaleString()} / NEXT: ${f.getXpNext(level).toLocaleString()}`) },
+        LEVEL: { run: () => f.log(`LEVEL: ${level}`) },
+        APS: { run: () => f.log(`APS: ${aps}`) },
+        MULT: { run: () => f.log(`MULTI: x${mult}`) },
+        WARP: { run: () => { f.boost(); f.log(`WARP: ${warpActive ? 'ON' : 'OFF'}`); } },
+        BOOST: { run: () => terminalCommands.WARP.run() },
+        OVERDRIVE: { run: () => {
+            const cost = Math.floor(f.getXpNext(level) * 0.3);
+            if(Date.now() <= odEndTime) { f.log("OVERDRIVE: COOLDOWN"); return; }
+            if(xp < cost) { f.log(`OVERDRIVE: NEED ${cost.toLocaleString()} XP`); return; }
+            f.specialAction('overdrive');
+        }},
+        THEME: { run: () => f.log(`THEME: ${getThemeLabel()}`) },
+        NEXTTHEME: { run: () => { f.nextTheme(); f.log(`THEME SET: ${getThemeLabel()}`); } },
+        THEMEIDX: { run: () => f.log(`THEME IDX: ${themeIdx}`) },
+        THEMES: { run: () => f.log(`THEMES: DEFAULT, GOLD, PINK, GREEN, MATRIX, CYBERPUNK, RAINBOW, OCEAN, SUNSET, AURORA`) },
+        SHOP: { run: () => { f.modal('shop'); f.log("SHOP: OPEN"); } },
+        TEST: { run: () => { f.modal('test'); f.log("TEST MODE: PANEL"); } },
+        REBOOT: { run: () => f.reboot() },
+        SAVE: { run: () => { f.save(); f.log("SAVE: OK"); } },
+        LOAD: { run: () => { f.load(); f.log("LOAD: OK"); } },
+        CLEAR: { run: () => { document.getElementById('terminal-content').innerHTML = ''; f.log("TERMINAL CLEARED"); } },
+        PING: { run: () => f.log("PONG") },
+        ECHO: { run: (args) => f.log(args ? `ECHO: ${args}` : "ECHO: ...") },
+        TRACE: { run: () => f.log("TRACE: ROUTE_STABLE") },
+        SCAN: { run: () => f.log("SCAN: NO ANOMALIES") },
+        DIAG: { run: () => f.log("DIAG: ALL SYSTEMS GREEN") },
+        SYSINFO: { run: () => f.log("SYSINFO: QUANTUM CORE ONLINE") },
+        CORE: { run: () => f.log("CORE: SYNCHRONIZED") },
+        MAP: { run: () => f.log("MAP: SECTOR-07 LOCKED") },
+        LOGS: { run: () => f.log("LOGS: 0 ERRORS") },
+        PROTOCOL: { run: () => f.log("PROTOCOL: ORBITRON-74") },
+        SAFEMODE: { run: () => f.log("SAFE MODE: DISABLED") },
+        CALIBRATE: { run: () => f.log("CALIBRATE: COMPLETE") },
+        ALIGN: { run: () => f.log("ALIGN: STABLE") },
+        STARS: { run: () => f.log(`STARS: ${stars.length}`) },
+        CORRUPTION: { run: () => f.log(`CORRUPTION: STAGE ${corruptionLevel}`) },
+        PANIC: { run: () => f.log(`PANIC: ${getComputedStyle(document.documentElement).getPropertyValue('--panic').trim()}`) },
+        COUNTDOWN: { run: () => f.log(`COUNTDOWN: ${formatCountdown(getCountdownDiff())}`) },
+        PROGRESS: { run: () => {
+            const prog = Math.min(100, ((Date.now() - startDate) / (targetDate - startDate)) * 100);
+            f.log(`PROGRESS: ${prog.toFixed(2)}%`);
+        }}
+    };
+
     function init() {
         canvas = document.getElementById('canvas'); ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth; canvas.height = window.innerHeight;
@@ -463,10 +540,15 @@
         
         document.getElementById('t-input').addEventListener('keypress', (e) => {
             if(e.key === 'Enter') {
-                const val = e.target.value.toUpperCase().trim();
-                if(corruptionLevel >= 1 && Math.random() < 0.15) { f.log(`CRITICAL: CMD_${val}_TIMED_OUT`); e.target.value = ''; return; }
-                if(val === 'ENTE') f.modal('test');
-                else f.log(`COMMAND: ${val}`);
+                const rawInput = e.target.value.trim();
+                if(!rawInput) return;
+                const [first] = rawInput.split(/\s+/);
+                const cmd = first.toUpperCase();
+                const args = rawInput.slice(first.length).trim();
+                if(corruptionLevel >= 1 && Math.random() < 0.15) { f.log(`CRITICAL: CMD_${cmd}_TIMED_OUT`); e.target.value = ''; return; }
+                if(cmd === 'ENTE') f.modal('test');
+                else if(terminalCommands[cmd]) terminalCommands[cmd].run(args, rawInput);
+                else f.log(`COMMAND: ${cmd}`);
                 e.target.value = '';
             }
         });

@@ -30,6 +30,10 @@
     <button class="btn" id="overdrive-btn" onclick="f.specialAction('overdrive')" title="Overdrive">
         ⚡<div id="od-timer-display" style="position:absolute; bottom:-18px; font-size:8px; font-weight:900; color:var(--p);"></div>
     </button>
+    <button class="btn" onclick="f.os.toggle()" title="M26 OS">🖥️</button>
+    <button class="btn" onclick="f.modal('settings')" title="Einstellungen">⚙️</button>
+    <button class="btn" onclick="f.toggleFullscreen()" title="Vollbild">⛶</button>
+    <button class="btn" onclick="f.modal('commands')" title="Command Center">🛰️</button>
 </div>
 
 <div class="stage" id="main-stage">
@@ -57,7 +61,7 @@
         </div>
     </div>
 
-    <div class="info-panel">
+    <div class="info-panel" id="ui-info">
         <div style="margin-bottom: 5px; color: var(--p); border-bottom: 1px solid var(--p); padding-bottom: 2px;">CORRUPTION STATUS</div>
         <div class="info-grid">
             <div class="info-item" id="info-26"><span>STAGE 26 (INSTABLE)</span> <span>-1 Std</span></div>
@@ -69,13 +73,26 @@
     
     <div style="font-size:8px; letter-spacing:4px; opacity:0.3; margin-top:8px; font-family:Orbitron;" id="sys-status">V75.0 // SYSTEM: STABLE</div>
 
-    <div class="progress-bar-container">
+    <div class="progress-bar-container" id="ui-progress">
         <div class="progress-fill" id="p-fill"></div>
     </div>
 </div>
 
 <div id="modal" onclick="if(event.target==this) f.modal()">
     <div class="modal-win" id="modal-content"></div>
+</div>
+
+<div id="os-shell" class="os-shell" aria-hidden="true">
+    <div class="os-topbar">
+        <div class="os-brand">M26 OS</div>
+        <div class="os-status">
+            <span id="os-status-text">SYSTEM: ONLINE</span>
+            <span id="os-clock">00:00:00</span>
+        </div>
+        <button class="os-close" onclick="f.os.toggle()">EXIT</button>
+    </div>
+    <div class="os-desktop" id="os-desktop"></div>
+    <div class="os-dock" id="os-dock"></div>
 </div>
 
 <script>
@@ -102,10 +119,15 @@
         { name: 'RAINBOW', p: '', s: '', bg: '', bg2: '', className: 'theme-rainbow' },
         { name: 'OCEAN', p: '#5de4ff', s: '#1b5bff', bg: '#031029', bg2: '#05062a' },
         { name: 'SUNSET', p: '#ffb347', s: '#ff416c', bg: '#2b0b1c', bg2: '#12060e' },
-        { name: 'AURORA', p: '#7cffe6', s: '#8d7bff', bg: '#040714', bg2: '#0b1b2d' }
+        { name: 'AURORA', p: '#7cffe6', s: '#8d7bff', bg: '#040714', bg2: '#0b1b2d' },
+        { name: 'NEBULA', p: '#ff77f0', s: '#6a00ff', bg: '#130313', bg2: '#090416' },
+        { name: 'EMBER', p: '#ff6b35', s: '#ffcc00', bg: '#1b0803', bg2: '#100403' },
+        { name: 'GLACIER', p: '#8ae1ff', s: '#5b6bff', bg: '#020a14', bg2: '#03061a' },
+        { name: 'NOIR', p: '#d3d8ff', s: '#7a7f99', bg: '#040406', bg2: '#0a0a12' },
+        { name: 'SIGNAL', p: '#24ff8f', s: '#00d1ff', bg: '#02100f', bg2: '#02141e' }
     ];
-    const generatedThemes = Array.from({ length: 120 }, (_, i) => {
-        const hue = Math.round((i * 360) / 120);
+    const generatedThemes = Array.from({ length: 200 }, (_, i) => {
+        const hue = Math.round((i * 360) / 200);
         const accent = (hue + 45) % 360;
         return {
             name: `SPECTRUM ${String(i + 1).padStart(3, '0')}`,
@@ -122,7 +144,72 @@
         { id: 2, name: 'Quantum CPU', cost: 1200, m: 0, a: 80, d: "Auto-XP." },
         { id: 3, name: 'Void Harvester', cost: 15000, m: 50, a: 500, d: "Dunkle Energie." },
         { id: 4, name: 'Time Dilation', cost: 100000, m: 200, a: 2500, d: "Zeit-Streckung." },
-        { id: 5, name: 'Prestige Protocol', cost: 800000, m: 1000, a: 15000, d: "System-Upgrade." }
+        { id: 5, name: 'Prestige Protocol', cost: 800000, m: 1000, a: 15000, d: "System-Upgrade." },
+        { id: 6, name: 'Solar Forge', cost: 2200000, m: 1800, a: 30000, d: "Sonnenkern-Booster." },
+        { id: 7, name: 'Chrono Lattice', cost: 4500000, m: 2500, a: 60000, d: "Zeitgitter-Cache." },
+        { id: 8, name: 'Singularity Core', cost: 9000000, m: 4000, a: 110000, d: "Schwerkraft-Matrix." },
+        { id: 9, name: 'Arc Reactor', cost: 15000000, m: 6500, a: 150000, d: "Reaktor-Overdrive." },
+        { id: 10, name: 'Phoenix Engine', cost: 24000000, m: 9000, a: 210000, d: "Neustart-Impulse." }
+    ];
+
+    const settingsDefaults = {
+        showTerminal: true,
+        showTimer: true,
+        showInfoPanel: true,
+        showLogo: true,
+        showSidebar: true,
+        showProgress: true,
+        showXp: true,
+        compactTerminal: false,
+        denseStars: false,
+        reduceMotion: false,
+        glowBoost: true,
+        scanlines: true,
+        panicOverlay: true,
+        highContrast: false,
+        mutedBackground: false,
+        autoWarp: false,
+        autoSave: true,
+        themeCycle: false,
+        debugMode: false,
+        bigNumbers: false
+    };
+
+    const settingsCatalog = [
+        { key: 'showTerminal', label: 'Terminal anzeigen', desc: 'Terminalfenster sichtbar halten.' },
+        { key: 'showTimer', label: 'Countdown anzeigen', desc: 'Timer-Grid im Zentrum.' },
+        { key: 'showInfoPanel', label: 'Statuspanel anzeigen', desc: 'Corruption-Panel aktiv.' },
+        { key: 'showLogo', label: 'Logo anzeigen', desc: 'Mission-Logo im Fokus.' },
+        { key: 'showSidebar', label: 'Sidebar anzeigen', desc: 'Schnellbuttons rechts.' },
+        { key: 'showProgress', label: 'Progressbar anzeigen', desc: 'Zeitfortschritt unten.' },
+        { key: 'showXp', label: 'XP Modul anzeigen', desc: 'Level- und XP-Chip.' },
+        { key: 'compactTerminal', label: 'Terminal kompakt', desc: 'Mehr Platz für Stage.' },
+        { key: 'denseStars', label: 'Sternenfeld dicht', desc: 'Mehr Sterne, mehr Bewegung.' },
+        { key: 'reduceMotion', label: 'Animationen reduzieren', desc: 'Sanfter Modus.' },
+        { key: 'glowBoost', label: 'Glow-Boost', desc: 'Stärkere Neon-Lichter.' },
+        { key: 'scanlines', label: 'Scanlines', desc: 'Retro-Overlay aktivieren.' },
+        { key: 'panicOverlay', label: 'Panic Overlay', desc: 'Rote Alarm-Layer.' },
+        { key: 'highContrast', label: 'High Contrast', desc: 'Mehr Kontrast für Fokus.' },
+        { key: 'mutedBackground', label: 'Muted Background', desc: 'Gedämpfte Hintergründe.' },
+        { key: 'autoWarp', label: 'Auto-Warp', desc: 'Warp-Drive standardmäßig an.' },
+        { key: 'autoSave', label: 'Auto-Save', desc: 'Sicherung alle 5 Sekunden.' },
+        { key: 'themeCycle', label: 'Theme Cycle', desc: 'Automatisch Themes wechseln.' },
+        { key: 'debugMode', label: 'Debug Mode', desc: 'Debug-Flag im HUD.' },
+        { key: 'bigNumbers', label: 'Große Zahlen', desc: 'Größere Countdown-Ziffern.' }
+    ];
+
+    let settingsState = { ...settingsDefaults };
+    let autoSaveTimer = null;
+    let themeCycleTimer = null;
+    let osClockTimer = null;
+
+    const osApps = [
+        { id: 'hub', name: 'System Hub', icon: '🧭' },
+        { id: 'shop', name: 'Quantum Shop', icon: '💎' },
+        { id: 'themes', name: 'Theme Vault', icon: '🧬' },
+        { id: 'terminal', name: 'Terminal', icon: '⌨️' },
+        { id: 'settings', name: 'Settings', icon: '⚙️' },
+        { id: 'monitor', name: 'Monitor', icon: '📡' }
     ];
 
     const f = {
@@ -132,7 +219,8 @@
                 counts: items.map(i => i.count || 0),
                 testTimeOffset, 
                 isTestMode,
-                corruptionLevel
+                corruptionLevel,
+                settingsState
             };
             localStorage.setItem('m26_v75_update', JSON.stringify(data));
         },
@@ -146,9 +234,11 @@
                 testTimeOffset = d.testTimeOffset || 0;
                 isTestMode = d.isTestMode || false;
                 corruptionLevel = d.corruptionLevel || 0;
+                settingsState = { ...settingsDefaults, ...(d.settingsState || {}) };
 
                 if(d.counts) d.counts.forEach((c, i) => items[i].count = c);
                 f.applyTheme(themeIdx);
+                f.applySettings();
                 if(isTestMode) document.getElementById('test-indicator').style.display = 'block';
             }
         },
@@ -176,6 +266,272 @@
             primaryColor = styles.getPropertyValue('--p').trim() || primaryColor;
             secondaryColor = styles.getPropertyValue('--s').trim() || secondaryColor;
             document.documentElement.style.setProperty('--glow', `${primaryColor}55`);
+        },
+        buildStars: () => {
+            const count = settingsState.denseStars ? 140 : 80;
+            stars = [];
+            for(let i=0; i<count; i++) {
+                stars.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, s:Math.random()*1.5+0.2});
+            }
+        },
+        applySettings: () => {
+            const setVisible = (id, show) => {
+                const el = document.getElementById(id);
+                if(el) el.style.display = show ? '' : 'none';
+            };
+            setVisible('ui-term', settingsState.showTerminal);
+            setVisible('ui-timer', settingsState.showTimer);
+            setVisible('ui-info', settingsState.showInfoPanel);
+            setVisible('main-logo', settingsState.showLogo);
+            setVisible('ui-btns', settingsState.showSidebar);
+            setVisible('ui-progress', settingsState.showProgress);
+            setVisible('ui-xp', settingsState.showXp);
+
+            document.body.classList.toggle('terminal-compact', settingsState.compactTerminal);
+            document.body.classList.toggle('reduce-motion', settingsState.reduceMotion);
+            document.body.classList.toggle('scanlines', settingsState.scanlines);
+            document.body.classList.toggle('high-contrast', settingsState.highContrast);
+            document.body.classList.toggle('muted-bg', settingsState.mutedBackground);
+            document.body.classList.toggle('big-numbers', settingsState.bigNumbers);
+
+            const glowStrength = settingsState.glowBoost ? '55' : '22';
+            document.documentElement.style.setProperty('--glow', `${primaryColor}${glowStrength}`);
+
+            const panicOverlay = document.querySelector('.panic-overlay');
+            if(panicOverlay) panicOverlay.style.display = settingsState.panicOverlay ? '' : 'none';
+
+            if(settingsState.autoWarp) {
+                warpActive = true;
+                document.getElementById('boost-btn').style.background = 'var(--p)';
+            }
+
+            if(autoSaveTimer) clearInterval(autoSaveTimer);
+            autoSaveTimer = settingsState.autoSave ? setInterval(f.save, 5000) : null;
+
+            if(themeCycleTimer) clearInterval(themeCycleTimer);
+            themeCycleTimer = settingsState.themeCycle ? setInterval(() => {
+                f.nextTheme();
+                f.log(`THEME CYCLE: ${getThemeLabel()}`);
+            }, 15000) : null;
+
+            const indicator = document.getElementById('test-indicator');
+            if(settingsState.debugMode && isTestMode) {
+                indicator.innerText = "DEBUG + TEST MODE";
+                indicator.style.color = 'var(--p)';
+                indicator.style.display = 'block';
+            } else if(settingsState.debugMode) {
+                indicator.innerText = "DEBUG MODE AKTIV";
+                indicator.style.color = 'var(--p)';
+                indicator.style.display = 'block';
+            } else {
+                indicator.innerText = "!! TEST MODUS AKTIV (ENTE) !!";
+                indicator.style.color = '#ff0055';
+                indicator.style.display = isTestMode ? 'block' : 'none';
+            }
+
+            if(canvas) f.buildStars();
+        },
+        toggleSetting: (key) => {
+            settingsState[key] = !settingsState[key];
+            f.applySettings();
+            f.save();
+            f.modal('settings');
+        },
+        toggleFullscreen: () => {
+            if(!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+                f.log("FULLSCREEN: ON");
+            } else {
+                document.exitFullscreen().catch(() => {});
+                f.log("FULLSCREEN: OFF");
+            }
+        },
+        os: {
+            openApps: {},
+            zIndex: 20,
+            toggle: (forceOpen = false) => {
+                const shell = document.getElementById('os-shell');
+                const isOpen = shell.classList.contains('active');
+                if(isOpen && !forceOpen) {
+                    shell.classList.remove('active');
+                    shell.setAttribute('aria-hidden', 'true');
+                    if(osClockTimer) clearInterval(osClockTimer);
+                    return;
+                }
+                shell.classList.add('active');
+                shell.setAttribute('aria-hidden', 'false');
+                f.os.renderDesktop();
+                f.os.renderDock();
+                f.os.updateClock();
+                if(osClockTimer) clearInterval(osClockTimer);
+                osClockTimer = setInterval(f.os.updateClock, 1000);
+            },
+            updateClock: () => {
+                const clock = document.getElementById('os-clock');
+                if(clock) clock.innerText = new Date().toLocaleTimeString('de-DE');
+            },
+            renderDesktop: () => {
+                const desktop = document.getElementById('os-desktop');
+                desktop.innerHTML = osApps.map(app => `
+                    <button class="os-icon" data-app="${app.id}">
+                        <span class="os-icon-emoji">${app.icon}</span>
+                        <span class="os-icon-label">${app.name}</span>
+                    </button>
+                `).join('');
+                desktop.querySelectorAll('.os-icon').forEach(btn => {
+                    btn.addEventListener('click', () => f.os.openApp(btn.dataset.app));
+                });
+            },
+            renderDock: () => {
+                const dock = document.getElementById('os-dock');
+                dock.innerHTML = osApps.map(app => `
+                    <button class="os-dock-btn" data-app="${app.id}" title="${app.name}">
+                        ${app.icon}
+                    </button>
+                `).join('');
+                dock.querySelectorAll('.os-dock-btn').forEach(btn => {
+                    btn.addEventListener('click', () => f.os.openApp(btn.dataset.app));
+                });
+            },
+            openApp: (appId) => {
+                const shell = document.getElementById('os-shell');
+                if(!shell.classList.contains('active')) f.os.toggle(true);
+                if(f.os.openApps[appId]) {
+                    f.os.focusApp(appId);
+                    return;
+                }
+                const app = osApps.find(a => a.id === appId);
+                if(!app) return;
+                const win = document.createElement('div');
+                win.className = 'os-window';
+                win.dataset.app = appId;
+                win.style.zIndex = `${++f.os.zIndex}`;
+                win.style.left = `${120 + Math.random() * 180}px`;
+                win.style.top = `${120 + Math.random() * 120}px`;
+                win.innerHTML = `
+                    <div class="os-window-bar">
+                        <span>${app.icon} ${app.name}</span>
+                        <div class="os-window-actions">
+                            <button onclick="f.os.closeApp('${appId}')">✖</button>
+                        </div>
+                    </div>
+                    <div class="os-window-body">${f.os.getWindowContent(appId)}</div>
+                `;
+                win.addEventListener('mousedown', () => f.os.focusApp(appId));
+                shell.appendChild(win);
+                f.os.openApps[appId] = win;
+                f.os.focusApp(appId);
+            },
+            closeApp: (appId) => {
+                const win = f.os.openApps[appId];
+                if(!win) return;
+                win.remove();
+                delete f.os.openApps[appId];
+            },
+            focusApp: (appId) => {
+                const win = f.os.openApps[appId];
+                if(!win) return;
+                f.os.zIndex += 1;
+                win.style.zIndex = `${f.os.zIndex}`;
+            },
+            getWindowContent: (appId) => {
+                if(appId === 'hub') {
+                    return `
+                        <div class="os-panel">
+                            <h3>Mission Control</h3>
+                            <p>Core Status: ${document.getElementById('sys-status').innerText}</p>
+                            <div class="os-panel-grid">
+                                <button onclick="f.modal('shop')">Open Shop</button>
+                                <button onclick="f.modal('themes')">Open Themes</button>
+                                <button onclick="f.modal('settings')">Open Settings</button>
+                                <button onclick="f.toggleFullscreen()">Toggle Fullscreen</button>
+                            </div>
+                        </div>
+                    `;
+                }
+                if(appId === 'shop') {
+                    return `
+                        <div class="os-panel">
+                            <h3>Quantum Shop Items</h3>
+                            <div class="os-scroll">
+                                ${items.map(item => `
+                                    <div class="os-list">
+                                        <div>
+                                            <strong>${item.name}</strong>
+                                            <div class="os-muted">${item.d}</div>
+                                        </div>
+                                        <span>${item.cost.toLocaleString()} XP</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                if(appId === 'themes') {
+                    return `
+                        <div class="os-panel">
+                            <h3>Theme Vault</h3>
+                            <div class="os-scroll os-grid">
+                                ${themeCatalog.slice(0, 24).map((theme, idx) => `
+                                    <button class="os-theme" onclick="f.setTheme(${idx}); f.log('THEME SET: ${theme.name}')">
+                                        <span>${theme.name}</span>
+                                        <small>#${String(idx).padStart(3,'0')}</small>
+                                    </button>
+                                `).join('')}
+                            </div>
+                            <div class="os-muted">+${themeCatalog.length - 24} weitere Themes im Vault.</div>
+                        </div>
+                    `;
+                }
+                if(appId === 'terminal') {
+                    return `
+                        <div class="os-panel">
+                            <h3>Terminal Matrix</h3>
+                            <div class="os-terminal">
+                                ${terminalHelpLines.map(line => `<div>> ${line}</div>`).join('')}
+                            </div>
+                            <div class="os-muted">Nutze das Hauptterminal für Live-Commands.</div>
+                        </div>
+                    `;
+                }
+                if(appId === 'settings') {
+                    return `
+                        <div class="os-panel">
+                            <h3>System Settings</h3>
+                            <div class="os-scroll">
+                                ${settingsCatalog.map(setting => `
+                                    <div class="os-list">
+                                        <div>
+                                            <strong>${setting.label}</strong>
+                                            <div class="os-muted">${setting.desc}</div>
+                                        </div>
+                                        <button class="os-toggle ${settingsState[setting.key] ? 'active' : ''}" onclick="f.toggleSetting('${setting.key}')">
+                                            ${settingsState[setting.key] ? 'ON' : 'OFF'}
+                                        </button>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+                if(appId === 'monitor') {
+                    return `
+                        <div class="os-panel">
+                            <h3>System Monitor</h3>
+                            <div class="os-monitor-grid">
+                                <div><span>XP</span><strong>${Math.floor(xp).toLocaleString()}</strong></div>
+                                <div><span>LEVEL</span><strong>${level}</strong></div>
+                                <div><span>APS</span><strong>${aps}</strong></div>
+                                <div><span>MULT</span><strong>x${mult}</strong></div>
+                                <div><span>THEMES</span><strong>${themeCatalog.length}</strong></div>
+                                <div><span>ITEMS</span><strong>${items.length}</strong></div>
+                            </div>
+                            <div class="os-muted">Live stats syncen mit dem Core.</div>
+                        </div>
+                    `;
+                }
+                return '<div class="os-panel">APP NOT FOUND</div>';
+            }
         },
         getXpNext: (l) => Math.floor(Math.pow(l, 2.4) * 500),
         getPrice: (i) => {
@@ -241,6 +597,26 @@
                         </button>`;
                     }).join('')}
                 </div>`;
+            } else if(t === 'settings') {
+                c.innerHTML = `<h2 style="font-family:Orbitron; color:var(--p); text-align:center;">SYSTEM SETTINGS</h2>
+                <div style="font-size:9px; opacity:0.6; text-align:center;">${settingsCatalog.length} MODULE // TOGGLE TO CONFIGURE</div>
+                <div class="settings-grid">
+                    ${settingsCatalog.map(setting => `
+                        <button class="setting-card ${settingsState[setting.key] ? 'active' : ''}" onclick="f.toggleSetting('${setting.key}')">
+                            <div class="setting-title">${setting.label}</div>
+                            <div class="setting-desc">${setting.desc}</div>
+                            <span class="setting-status">${settingsState[setting.key] ? 'ON' : 'OFF'}</span>
+                        </button>
+                    `).join('')}
+                </div>`;
+            } else if(t === 'commands') {
+                const commandList = Object.keys(terminalCommands).sort();
+                c.innerHTML = `<h2 style="font-family:Orbitron; color:var(--p); text-align:center;">COMMAND CENTER</h2>
+                <div style="font-size:9px; opacity:0.6; text-align:center;">${commandList.length} COMMANDS</div>
+                <div class="command-grid">
+                    ${commandList.map(cmd => `<div class="command-chip">${cmd}</div>`).join('')}
+                </div>
+                <div style="margin-top:12px; font-size:10px; opacity:0.6; text-align:center;">Nutze HELP oder COMMANDS im Terminal für Details.</div>`;
             } else if(t === 'test') {
                 c.innerHTML = `<h2 style="font-family:Orbitron; color:#ff0055; text-align:center;">ENTE PROTOKOLL</h2>
                 <input type="number" id="test-seconds-input" class="test-input-field" placeholder="Sekunden bis Ziel">
@@ -253,12 +629,11 @@
             if(isNaN(seconds)) { 
                 testTimeOffset = 0; 
                 isTestMode = false; 
-                document.getElementById('test-indicator').style.display='none'; 
             } else { 
                 testTimeOffset = targetDate - Date.now() - (seconds * 1000); 
                 isTestMode = true; 
-                document.getElementById('test-indicator').style.display='block'; 
             }
+            f.applySettings();
             f.modal();
             f.save();
         },
@@ -266,6 +641,7 @@
             testTimeOffset = 0;
             isTestMode = false;
             corruptionLevel = 0;
+            settingsState = { ...settingsDefaults };
             localStorage.removeItem('m26_v75_update');
             location.reload();
         },
@@ -321,10 +697,10 @@
     const getThemeLabel = () => themeCatalog[themeIdx] ? themeCatalog[themeIdx].name : 'DEFAULT';
 
     const terminalHelpLines = [
-        "CORE: HELP, COMMANDS, STATUS, VERSION, TIME, DATE, UPTIME, SYSINFO, PROTOCOL",
-        "STATS: XP, LEVEL, APS, MULT, CORRUPTION, PANIC, COUNTDOWN, PROGRESS, STARS",
-        "ACTIONS: THEME, NEXTTHEME, THEMEIDX, THEMES, SETTHEME, VAULT, WARP, BOOST, OVERDRIVE, SHOP, TEST",
-        "TOOLS: SAVE, LOAD, CLEAR, PING, ECHO, TRACE, SCAN, DIAG, CORE, MAP, LOGS, CALIBRATE, ALIGN, SAFEMODE, REBOOT"
+        "CORE: HELP, COMMANDS, STATUS, VERSION, TIME, DATE, UPTIME, SYSINFO, PROTOCOL, FULLSCREEN, SETTINGS, OS",
+        "STATS: XP, LEVEL, APS, MULT, CORRUPTION, PANIC, COUNTDOWN, PROGRESS, STARS, THEMECOUNT, ITEMCOUNT",
+        "ACTIONS: THEME, NEXTTHEME, THEMEIDX, THEMES, SETTHEME, VAULT, WARP, BOOST, OVERDRIVE, SHOP, TEST, COMMANDS",
+        "TOOLS: SAVE, LOAD, CLEAR, PING, ECHO, TRACE, SCAN, DIAG, CORE, MAP, LOGS, CALIBRATE, ALIGN, SAFEMODE, REBOOT, RESETTHEME"
     ];
 
     const terminalCommands = {
@@ -335,6 +711,9 @@
         TIME: { run: () => f.log(`TIME: ${new Date().toLocaleTimeString('de-DE')}`) },
         DATE: { run: () => f.log(`DATE: ${new Date().toLocaleDateString('de-DE')}`) },
         UPTIME: { run: () => f.log(`UPTIME: ${Math.floor(performance.now() / 1000)}s`) },
+        FULLSCREEN: { run: () => f.toggleFullscreen() },
+        SETTINGS: { run: () => { f.modal('settings'); f.log("SETTINGS: OPEN"); } },
+        OS: { run: () => { f.os.toggle(true); f.log("OS: OPEN"); } },
         XP: { run: () => f.log(`XP: ${Math.floor(xp).toLocaleString()} / NEXT: ${f.getXpNext(level).toLocaleString()}`) },
         LEVEL: { run: () => f.log(`LEVEL: ${level}`) },
         APS: { run: () => f.log(`APS: ${aps}`) },
@@ -350,6 +729,7 @@
         THEME: { run: () => f.log(`THEME: ${getThemeLabel()}`) },
         NEXTTHEME: { run: () => { f.nextTheme(); f.log(`THEME SET: ${getThemeLabel()}`); } },
         THEMEIDX: { run: () => f.log(`THEME IDX: ${themeIdx}`) },
+        THEMECOUNT: { run: () => f.log(`THEMECOUNT: ${themeCatalog.length}`) },
         THEMES: { run: () => f.log(`THEMES: ${themeCatalog.length} TOTAL. USE SETTHEME <IDX> OR VAULT`) },
         SETTHEME: { run: (args) => {
             const idx = parseInt(args, 10);
@@ -358,8 +738,11 @@
             f.setTheme(idx);
             f.log(`THEME SET: ${getThemeLabel()}`);
         }},
+        RESETTHEME: { run: () => { f.setTheme(0); f.log("THEME RESET: DEFAULT"); } },
         VAULT: { run: () => { f.modal('themes'); f.log("VAULT: OPEN"); } },
         SHOP: { run: () => { f.modal('shop'); f.log("SHOP: OPEN"); } },
+        COMMANDS: { run: () => { f.modal('commands'); f.log("COMMANDS: OPEN"); } },
+        ITEMCOUNT: { run: () => f.log(`ITEMCOUNT: ${items.length}`) },
         TEST: { run: () => { f.modal('test'); f.log("TEST MODE: PANEL"); } },
         REBOOT: { run: () => f.reboot() },
         SAVE: { run: () => { f.save(); f.log("SAVE: OK"); } },
@@ -391,7 +774,7 @@
     function init() {
         canvas = document.getElementById('canvas'); ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-        for(let i=0; i<80; i++) stars.push({x:Math.random()*canvas.width, y:Math.random()*canvas.height, s:Math.random()*1.5+0.2});
+        f.buildStars();
         
         document.getElementById('t-input').addEventListener('keypress', (e) => {
             if(e.key === 'Enter') {
@@ -408,6 +791,7 @@
             }
         });
         f.syncThemeColors();
+        f.applySettings();
         f.load();
     }
 
@@ -484,8 +868,12 @@
         document.getElementById('p-fill').style.width = prog + "%";
     }
 
-    window.onload = () => { init(); draw(); setInterval(update, 100); setInterval(f.save, 5000); };
-    window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+    window.onload = () => { init(); draw(); setInterval(update, 100); };
+    window.onresize = () => { 
+        canvas.width = window.innerWidth; 
+        canvas.height = window.innerHeight; 
+        f.buildStars();
+    };
 </script>
 </body>
 </html>

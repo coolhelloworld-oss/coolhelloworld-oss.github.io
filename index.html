@@ -3,219 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mission 2026 - V74.3 Pure HTML</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;700&family=Fira+Code:wght@300;500&display=swap');
+    <title>Mission 2026 - V75.0 Pure HTML</title>
+    <link rel="stylesheet" href="style.css">
 
-        :root {
-            --p: #00f2ff; 
-            --s: #7000ff; 
-            --bg: #010103; 
-            --bg2: #04040a;
-            --glow: rgba(0, 242, 255, 0.3);
-            --panic: 0;
-        }
-
-        body.theme-gold { --p: #ffcc00; --s: #ff8800; }
-        body.theme-pink { --p: #ff007a; --s: #7000ff; }
-        body.theme-green { --p: #00ff88; --s: #0088ff; }
-        body.theme-matrix { --p: #00ff41; --s: #003b00; --bg: #000500; }
-        body.theme-cyberpunk { --p: #fcee0a; --s: #ff003c; --bg: #020205; }
-        body.theme-rainbow { animation: rainbow-bg 5s infinite linear; }
-        body.theme-ocean { --p: #5de4ff; --s: #1b5bff; --bg: #031029; --bg2: #05062a; }
-        body.theme-sunset { --p: #ffb347; --s: #ff416c; --bg: #2b0b1c; --bg2: #12060e; }
-        body.theme-aurora { --p: #7cffe6; --s: #8d7bff; --bg: #040714; --bg2: #0b1b2d; }
-        
-        @keyframes rainbow-bg {
-            0% { --p: #ff0000; --s: #ff7a00; } 
-            25% { --p: #00ff00; --s: #00ffa5; } 
-            50% { --p: #00ffff; --s: #0066ff; } 
-            75% { --p: #ff00ff; --s: #7a00ff; } 
-            100% { --p: #ff0000; --s: #ff7a00; }
-        }
-
-        /* PANIC ANIMATIONS */
-        @keyframes glitch-soft {
-            0% { transform: translate(0); }
-            50% { transform: translate(2px, -1px); filter: hue-rotate(10deg); }
-            100% { transform: translate(0); }
-        }
-
-        @keyframes glitch-hard {
-            0% { transform: translate(0); clip-path: inset(10% 0 30% 0); }
-            20% { transform: translate(-15px, 10px); clip-path: inset(40% 0 10% 0); filter: invert(1); }
-            40% { transform: translate(15px, -10px); clip-path: inset(20% 0 50% 0); }
-            60% { transform: translate(-20px, 0); clip-path: inset(80% 0 5% 0); }
-            100% { transform: translate(0); }
-        }
-
-        .p-glitch-light { animation: glitch-soft 2s infinite; opacity: 0.95; }
-        .p-glitch-heavy { animation: glitch-hard 0.15s infinite; opacity: 0.9; }
-        .p-void-tear { animation: void-tear 0.08s infinite; filter: invert(1) hue-rotate(180deg) saturate(2); }
-        .p-panic { animation: panic-pulse 1.1s infinite; }
-        
-        .p-zero-point { filter: blur(5px) grayscale(0.5) contrast(2); }
-        
-        .p-absolute-zero { 
-            filter: contrast(200) brightness(50) saturate(0) !important;
-            animation: final-shatter-fixed 0.5s infinite;
-        }
-
-        @keyframes final-shatter-fixed {
-            0% { transform: translate(2px, 2px); }
-            50% { transform: translate(-2px, -2px); }
-            100% { transform: translate(0); }
-        }
-
-        @keyframes void-tear {
-            0%, 100% { clip-path: inset(0); transform: translateX(0) skew(0deg); }
-            33% { clip-path: inset(15% 0 75% 0); transform: translateX(-30px) skew(5deg); }
-            66% { clip-path: inset(65% 0 15% 0); transform: translateX(30px) skew(-5deg); }
-        }
-        
-        @keyframes panic-pulse {
-            0%, 100% { transform: translate(0); filter: saturate(1.1); }
-            40% { transform: translate(1px, -2px) scale(1.01); filter: saturate(1.6) hue-rotate(8deg); }
-            60% { transform: translate(-2px, 1px); filter: saturate(1.3) hue-rotate(-6deg); }
-        }
-
-        .panic-overlay {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            background:
-                radial-gradient(circle at 50% 40%, rgba(255, 0, 80, calc(var(--panic) * 0.35)), transparent 60%),
-                linear-gradient(180deg, rgba(255, 0, 50, calc(var(--panic) * 0.25)), transparent 35%, rgba(0, 0, 0, calc(var(--panic) * 0.35)));
-            mix-blend-mode: screen;
-            opacity: calc(var(--panic) * 0.9);
-            z-index: 5;
-            transition: opacity 0.3s ease;
-        }
-
-        .panic-overlay::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: repeating-linear-gradient(transparent 0 2px, rgba(255,255,255,0.06) 2px 3px);
-            opacity: calc(var(--panic) * 0.6);
-            animation: scanline 0.5s infinite linear;
-        }
-
-        @keyframes scanline {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(3px); }
-        }
-
-        body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
-            background: var(--bg); font-family: 'Inter', sans-serif; color: white;
-            display: flex; justify-content: center; align-items: center;
-        }
-
-        body::before {
-            content: "";
-            position: fixed;
-            inset: 0;
-            background: radial-gradient(circle at top, rgba(255,255,255,0.08), transparent 55%),
-                        linear-gradient(160deg, var(--bg), var(--bg2));
-            z-index: 0;
-        }
-
-        #canvas { position: absolute; top: 0; left: 0; z-index: 1; pointer-events: none; }
-
-        .stage {
-            position: relative; z-index: 10; width: 100%; height: 100vh;
-            display: flex; flex-direction: column; 
-            justify-content: center; align-items: center; padding: 28px; box-sizing: border-box;
-            gap: 12px; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .main-logo { 
-            width: 90px; filter: drop-shadow(0 0 15px var(--p));
-            cursor: pointer; transition: 0.3s; user-select: none; z-index: 20;
-        }
-
-        .xp-display-container {
-            text-align: center; background: rgba(255,255,255,0.04); 
-            padding: 10px 22px; border-radius: 14px;
-            border: 1px solid rgba(255,255,255,0.12); cursor: pointer; min-width: 200px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.35), 0 0 25px var(--glow);
-        }
-        .xp-val { font-family: 'Orbitron'; font-size: 22px; color: var(--p); text-shadow: 0 0 15px var(--p); font-weight: 900; }
-        
-        .countdown-grid { 
-            display: grid; grid-template-columns: repeat(4, 1fr); 
-            gap: 10px; width: 100%; max-width: 450px;
-        }
-        .time-box {
-            background: rgba(6, 8, 18, 0.7);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 12px;
-            padding: 10px 6px;
-            text-align: center;
-            box-shadow: inset 0 0 15px rgba(255,255,255,0.03);
-        }
-        .v { display: block; font-family: 'Orbitron'; font-size: 2.2rem; font-weight: 900; text-align: center; }
-
-        .terminal-container {
-            width: 100%; max-width: 450px; background: rgba(0,0,0,0.9);
-            border: 1px solid rgba(255,255,255,0.12); border-radius: 12px 12px 0 0; overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-        }
-        #terminal-content {
-            height: 60px; font-family: 'Fira Code', monospace; font-size: 10px; color: var(--p);
-            padding: 8px; overflow-y: auto; display: flex; flex-direction: column-reverse; gap: 4px;
-        }
-
-        .info-panel {
-            width: 100%; max-width: 450px; background: rgba(10,10,20,0.8);
-            border: 1px solid rgba(255,255,255,0.1); border-top: none;
-            border-radius: 0 0 12px 12px; padding: 12px; box-sizing: border-box;
-            font-size: 9px; font-family: 'Orbitron'; color: rgba(255,255,255,0.4);
-        }
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
-        .info-item { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 2px 0; }
-        .info-active { color: var(--p); text-shadow: 0 0 5px var(--p); font-weight: 900; border-color: var(--p); }
-
-        .side-btns { position: fixed; right: 15px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 10px; z-index: 100; }
-        .btn { 
-            width: 44px; height: 44px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); 
-            background: rgba(10,10,15,0.95); color: white; cursor: pointer; 
-            display: flex; align-items: center; justify-content: center; transition: 0.3s; font-size: 18px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-        }
-        .btn:hover { border-color: var(--p); box-shadow: 0 0 15px var(--p); transform: scale(1.05); }
-
-        #final-screen {
-            position: fixed; inset: 0; background: white; z-index: 100000;
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            text-align: center; font-family: 'Orbitron'; color: black;
-        }
-
-        #modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(15px); }
-        .modal-win { width: 90%; max-width: 500px; padding: 25px; border: 1px solid var(--p); background: #050507; border-radius: 16px; max-height: 80vh; overflow-y: auto; box-shadow: 0 20px 45px rgba(0,0,0,0.6); }
-
-        .progress-bar-container { position: fixed; bottom: 0; left: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.05); }
-        .progress-fill { height: 100%; background: var(--p); width: 0%; box-shadow: 0 0 15px var(--p); }
-
-        .float-xp { position: fixed; pointer-events: none; font-family: 'Orbitron'; font-weight: 900; animation: xp-f 0.7s forwards; z-index: 5001; }
-        @keyframes xp-f { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-100px); } }
-
-        #test-indicator { position: fixed; top: 10px; left: 10px; font-family: 'Fira Code'; font-size: 10px; color: #ff0055; display: none; z-index: 1000; text-transform: uppercase; }
-        
-        .test-input-field {
-            background: rgba(255,255,255,0.05); border: 1px solid var(--p); color: white;
-            padding: 10px; border-radius: 8px; font-family: 'Fira Code'; width: 100%;
-            margin: 15px 0; outline: none; text-align: center; font-size: 18px;
-        }
-
-        .reboot-btn {
-            margin-top: 40px; padding: 12px 30px; background: black; color: white;
-            border: 2px solid black; font-family: 'Orbitron'; cursor: pointer;
-            font-weight: 900; transition: 0.3s; letter-spacing: 2px;
-        }
-        .reboot-btn:hover { background: white; color: black; transform: scale(1.1); }
-    </style>
 </head>
 <body id="body">
 
@@ -234,6 +24,7 @@
 
 <div class="side-btns" id="ui-btns">
     <button class="btn" onclick="f.modal('shop')" title="Shop">💎</button>
+    <button class="btn" onclick="f.modal('themes')" title="Theme Vault">🧬</button>
     <button class="btn" onclick="f.nextTheme()" title="Design">🎨</button>
     <button class="btn" id="boost-btn" onclick="f.boost()" title="Warp Drive">🚀</button>
     <button class="btn" id="overdrive-btn" onclick="f.specialAction('overdrive')" title="Overdrive">
@@ -276,7 +67,7 @@
         </div>
     </div>
     
-    <div style="font-size:8px; letter-spacing:4px; opacity:0.3; margin-top:8px; font-family:Orbitron;" id="sys-status">V74.3 // SYSTEM: STABLE</div>
+    <div style="font-size:8px; letter-spacing:4px; opacity:0.3; margin-top:8px; font-family:Orbitron;" id="sys-status">V75.0 // SYSTEM: STABLE</div>
 
     <div class="progress-bar-container">
         <div class="progress-fill" id="p-fill"></div>
@@ -301,7 +92,30 @@
     let canvas, ctx, stars = [];
     let xp = 0, level = 1, aps = 0, mult = 1, warpActive = false;
     let odEndTime = 0, themeIdx = 0;
-    const themes = ['', 'theme-gold', 'theme-pink', 'theme-green', 'theme-matrix', 'theme-cyberpunk', 'theme-rainbow', 'theme-ocean', 'theme-sunset', 'theme-aurora'];
+    const baseThemes = [
+        { name: 'DEFAULT', p: '', s: '', bg: '', bg2: '', className: '' },
+        { name: 'GOLD', p: '#ffcc00', s: '#ff8800', bg: '', bg2: '' },
+        { name: 'PINK', p: '#ff007a', s: '#7000ff', bg: '', bg2: '' },
+        { name: 'GREEN', p: '#00ff88', s: '#0088ff', bg: '', bg2: '' },
+        { name: 'MATRIX', p: '#00ff41', s: '#003b00', bg: '#000500', bg2: '#000500' },
+        { name: 'CYBERPUNK', p: '#fcee0a', s: '#ff003c', bg: '#020205', bg2: '#020205' },
+        { name: 'RAINBOW', p: '', s: '', bg: '', bg2: '', className: 'theme-rainbow' },
+        { name: 'OCEAN', p: '#5de4ff', s: '#1b5bff', bg: '#031029', bg2: '#05062a' },
+        { name: 'SUNSET', p: '#ffb347', s: '#ff416c', bg: '#2b0b1c', bg2: '#12060e' },
+        { name: 'AURORA', p: '#7cffe6', s: '#8d7bff', bg: '#040714', bg2: '#0b1b2d' }
+    ];
+    const generatedThemes = Array.from({ length: 120 }, (_, i) => {
+        const hue = Math.round((i * 360) / 120);
+        const accent = (hue + 45) % 360;
+        return {
+            name: `SPECTRUM ${String(i + 1).padStart(3, '0')}`,
+            p: `hsl(${hue} 90% 60%)`,
+            s: `hsl(${accent} 90% 60%)`,
+            bg: `hsl(${hue} 40% 8%)`,
+            bg2: `hsl(${accent} 40% 10%)`
+        };
+    });
+    const themeCatalog = [...baseThemes, ...generatedThemes];
 
     const items = [
         { id: 1, name: 'Neural Overclock', cost: 100, m: 3, a: 0, d: "Klick-Boost." },
@@ -320,23 +134,42 @@
                 isTestMode,
                 corruptionLevel
             };
-            localStorage.setItem('m26_v74_final', JSON.stringify(data));
+            localStorage.setItem('m26_v75_update', JSON.stringify(data));
         },
         load: () => {
-            const s = localStorage.getItem('m26_v74_final');
+            const s = localStorage.getItem('m26_v75_update');
             if(s) {
                 const d = JSON.parse(s);
                 xp = d.xp || 0; level = d.level || 1; aps = d.aps || 0; mult = d.mult || 1;
-                themeIdx = d.themeIdx || 0; odEndTime = d.odEndTime || 0;
+                themeIdx = Number.isInteger(d.themeIdx) ? d.themeIdx : 0; odEndTime = d.odEndTime || 0;
+                if(themeIdx >= themeCatalog.length) themeIdx = 0;
                 testTimeOffset = d.testTimeOffset || 0;
                 isTestMode = d.isTestMode || false;
                 corruptionLevel = d.corruptionLevel || 0;
 
                 if(d.counts) d.counts.forEach((c, i) => items[i].count = c);
-                if(themes[themeIdx]) document.body.classList.add(themes[themeIdx]);
-                f.syncThemeColors();
+                f.applyTheme(themeIdx);
                 if(isTestMode) document.getElementById('test-indicator').style.display = 'block';
             }
+        },
+        applyTheme: (idx) => {
+            const theme = themeCatalog[idx] || themeCatalog[0];
+            themeCatalog.forEach((t) => { if(t.className) document.body.classList.remove(t.className); });
+            if(theme.className) document.body.classList.add(theme.className);
+            const setVar = (key, value) => {
+                if(value) document.documentElement.style.setProperty(key, value);
+                else document.documentElement.style.removeProperty(key);
+            };
+            setVar('--p', theme.p);
+            setVar('--s', theme.s);
+            setVar('--bg', theme.bg);
+            setVar('--bg2', theme.bg2);
+            f.syncThemeColors();
+        },
+        setTheme: (idx) => {
+            themeIdx = ((idx % themeCatalog.length) + themeCatalog.length) % themeCatalog.length;
+            f.applyTheme(themeIdx);
+            f.save();
         },
         syncThemeColors: () => {
             const styles = getComputedStyle(document.body);
@@ -390,6 +223,24 @@
                         <button onclick="if(${can}) f.buy(${i.id}, ${p})" ${can ? '' : 'disabled'} style="background:${can?'var(--p)':'#111'}; color:${can ? 'black' : '#666'}; font-family:Orbitron; font-size:9px; border:none; padding:8px 12px; border-radius:6px; cursor:${can ? 'pointer' : 'not-allowed'};">${p.toLocaleString()} XP</button>
                     </div>`;
                 });
+            } else if(t === 'themes') {
+                c.innerHTML = `<h2 style="font-family:Orbitron; color:var(--p); text-align:center;">THEME VAULT</h2>
+                <div style="font-size:9px; opacity:0.6; text-align:center;">${themeCatalog.length} THEMES // SETTHEME & THEMES COMMANDS</div>
+                <div class="theme-vault">
+                    ${themeCatalog.map((theme, idx) => {
+                        const p = theme.p || '#00f2ff';
+                        const s = theme.s || '#7000ff';
+                        const bg = theme.bg || '#07070d';
+                        const preview = theme.className === 'theme-rainbow'
+                            ? 'linear-gradient(135deg, #ff0080, #00e5ff)'
+                            : `linear-gradient(135deg, ${p}, ${s})`;
+                        return `<button class="theme-card" onclick="f.setTheme(${idx}); f.modal();" title="SET ${theme.name}">
+                            <div class="theme-preview" style="background:${preview}; border:1px solid ${bg};"></div>
+                            ${theme.name}
+                            <span>#${String(idx).padStart(3,'0')}</span>
+                        </button>`;
+                    }).join('')}
+                </div>`;
             } else if(t === 'test') {
                 c.innerHTML = `<h2 style="font-family:Orbitron; color:#ff0055; text-align:center;">ENTE PROTOKOLL</h2>
                 <input type="number" id="test-seconds-input" class="test-input-field" placeholder="Sekunden bis Ziel">
@@ -415,7 +266,7 @@
             testTimeOffset = 0;
             isTestMode = false;
             corruptionLevel = 0;
-            localStorage.removeItem('m26_v74_final');
+            localStorage.removeItem('m26_v75_update');
             location.reload();
         },
         buy: (id, p) => {
@@ -436,11 +287,7 @@
             t.prepend(d); if(t.childNodes.length > 20) t.lastChild.remove();
         },
         nextTheme: () => {
-            themes.forEach(t => { if(t) document.body.classList.remove(t); });
-            themeIdx = (themeIdx + 1) % themes.length;
-            if(themes[themeIdx]) document.body.classList.add(themes[themeIdx]);
-            f.syncThemeColors();
-            f.save();
+            f.setTheme(themeIdx + 1);
         },
         boost: () => { warpActive = !warpActive; document.getElementById('boost-btn').style.background = warpActive ? 'var(--p)' : ''; },
         specialAction: (t) => {
@@ -471,12 +318,12 @@
         return `${String(d).padStart(2,'0')}d ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
     };
 
-    const getThemeLabel = () => themes[themeIdx] ? themes[themeIdx].replace('theme-', '').toUpperCase() : 'DEFAULT';
+    const getThemeLabel = () => themeCatalog[themeIdx] ? themeCatalog[themeIdx].name : 'DEFAULT';
 
     const terminalHelpLines = [
         "CORE: HELP, COMMANDS, STATUS, VERSION, TIME, DATE, UPTIME, SYSINFO, PROTOCOL",
         "STATS: XP, LEVEL, APS, MULT, CORRUPTION, PANIC, COUNTDOWN, PROGRESS, STARS",
-        "ACTIONS: THEME, NEXTTHEME, THEMEIDX, THEMES, WARP, BOOST, OVERDRIVE, SHOP, TEST",
+        "ACTIONS: THEME, NEXTTHEME, THEMEIDX, THEMES, SETTHEME, VAULT, WARP, BOOST, OVERDRIVE, SHOP, TEST",
         "TOOLS: SAVE, LOAD, CLEAR, PING, ECHO, TRACE, SCAN, DIAG, CORE, MAP, LOGS, CALIBRATE, ALIGN, SAFEMODE, REBOOT"
     ];
 
@@ -484,7 +331,7 @@
         HELP: { run: () => terminalHelpLines.slice().reverse().forEach(line => f.log(line)) },
         COMMANDS: { run: () => terminalCommands.HELP.run() },
         STATUS: { run: () => f.log(`STATUS: ${document.getElementById('sys-status').innerText}`) },
-        VERSION: { run: () => f.log("VERSION: V74.3") },
+        VERSION: { run: () => f.log("VERSION: V75.0") },
         TIME: { run: () => f.log(`TIME: ${new Date().toLocaleTimeString('de-DE')}`) },
         DATE: { run: () => f.log(`DATE: ${new Date().toLocaleDateString('de-DE')}`) },
         UPTIME: { run: () => f.log(`UPTIME: ${Math.floor(performance.now() / 1000)}s`) },
@@ -503,7 +350,15 @@
         THEME: { run: () => f.log(`THEME: ${getThemeLabel()}`) },
         NEXTTHEME: { run: () => { f.nextTheme(); f.log(`THEME SET: ${getThemeLabel()}`); } },
         THEMEIDX: { run: () => f.log(`THEME IDX: ${themeIdx}`) },
-        THEMES: { run: () => f.log(`THEMES: DEFAULT, GOLD, PINK, GREEN, MATRIX, CYBERPUNK, RAINBOW, OCEAN, SUNSET, AURORA`) },
+        THEMES: { run: () => f.log(`THEMES: ${themeCatalog.length} TOTAL. USE SETTHEME <IDX> OR VAULT`) },
+        SETTHEME: { run: (args) => {
+            const idx = parseInt(args, 10);
+            if(Number.isNaN(idx)) { f.log("SETTHEME: NEED INDEX"); return; }
+            if(idx < 0 || idx >= themeCatalog.length) { f.log(`SETTHEME: OUT OF RANGE (0-${themeCatalog.length - 1})`); return; }
+            f.setTheme(idx);
+            f.log(`THEME SET: ${getThemeLabel()}`);
+        }},
+        VAULT: { run: () => { f.modal('themes'); f.log("VAULT: OPEN"); } },
         SHOP: { run: () => { f.modal('shop'); f.log("SHOP: OPEN"); } },
         TEST: { run: () => { f.modal('test'); f.log("TEST MODE: PANEL"); } },
         REBOOT: { run: () => f.reboot() },
@@ -557,7 +412,7 @@
     }
 
     function draw() {
-        if(themes[themeIdx] === 'theme-rainbow') {
+        if(themeCatalog[themeIdx] && themeCatalog[themeIdx].className === 'theme-rainbow') {
             const styles = getComputedStyle(document.body);
             primaryColor = styles.getPropertyValue('--p').trim() || primaryColor;
         }
@@ -596,16 +451,16 @@
                 corruptionLevel = 1;
                 stage.classList.add('p-glitch-light');
                 document.getElementById('info-26').classList.add('info-active');
-                status.innerText = "V74.3 // SYSTEM: INSTABLE";
+                status.innerText = "V75.0 // SYSTEM: INSTABLE";
             } 
             else if(diff <= 60000) {
                 corruptionLevel = 2;
                 stage.classList.add('p-glitch-heavy');
                 document.getElementById('info-heavy').classList.add('info-active');
-                status.innerText = "V74.3 // SYSTEM: CRITICAL_FAILURE";
+                status.innerText = "V75.0 // SYSTEM: CRITICAL_FAILURE";
             } else {
                 corruptionLevel = 0;
-                status.innerText = "V74.3 // SYSTEM: STABLE";
+                status.innerText = "V75.0 // SYSTEM: STABLE";
             }
 
             if(diff <= 60000) panicLevel = 0.5;

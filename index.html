@@ -18,6 +18,10 @@
     <h1 style="letter-spacing: 15px; font-weight: 900;">MISSION 2026</h1>
     <p style="opacity: 0.6; font-size: 14px; margin-top: 10px;">SYSTEM ABSOLUTE ZERO ACHIEVED</p>
     <button class="reboot-btn" onclick="f.reboot()">SYSTEM REBOOT</button>
+    <div class="reboot-status" id="reboot-status">READY FOR REBOOT</div>
+    <div class="reboot-progress">
+        <div class="reboot-progress-fill" id="reboot-progress"></div>
+    </div>
     <div style="margin-top: 60px; font-size: 12px; letter-spacing: 2px;">PROJEKT VON MIKRO 26</div>
     <div style="margin-top: 6px; font-size: 10px; letter-spacing: 2px; opacity: 0.6;">FROM MIKROLABS</div>
 </div>
@@ -31,6 +35,7 @@
         ⚡<div id="od-timer-display" style="position:absolute; bottom:-18px; font-size:8px; font-weight:900; color:var(--p);"></div>
     </button>
     <button class="btn" onclick="f.os.toggle()" title="M26 OS">🖥️</button>
+    <button class="btn" onclick="f.modal('update')" title="Pro++Pro Update">✨</button>
     <button class="btn" onclick="f.modal('settings')" title="Einstellungen">⚙️</button>
     <button class="btn" onclick="f.toggleFullscreen()" title="Vollbild">⛶</button>
     <button class="btn" onclick="f.modal('commands')" title="Command Center">🛰️</button>
@@ -54,6 +59,13 @@
     </div>
 
     <div class="terminal-container" id="ui-term">
+        <div class="terminal-header">
+            <span>TERMINAL CORE</span>
+            <div class="terminal-meta">
+                <span id="terminal-status">ONLINE</span>
+                <span id="terminal-clock">00:00:00</span>
+            </div>
+        </div>
         <div id="terminal-content"></div>
         <div style="padding: 6px 12px; background: #08080a; display: flex; align-items: center; border-top: 1px solid rgba(255,255,255,0.05);">
             <span style="color:var(--p); font-family:'Fira Code'; font-size:11px; margin-right:8px;">></span>
@@ -202,6 +214,9 @@
     let autoSaveTimer = null;
     let themeCycleTimer = null;
     let osClockTimer = null;
+    let terminalClockTimer = null;
+    const commandHistory = [];
+    let historyIndex = -1;
 
     const osApps = [
         { id: 'hub', name: 'System Hub', icon: '🧭' },
@@ -209,10 +224,50 @@
         { id: 'themes', name: 'Theme Vault', icon: '🧬' },
         { id: 'terminal', name: 'Terminal', icon: '⌨️' },
         { id: 'settings', name: 'Settings', icon: '⚙️' },
-        { id: 'monitor', name: 'Monitor', icon: '📡' }
+        { id: 'monitor', name: 'Monitor', icon: '📡' },
+        { id: 'ops', name: 'Ops Center', icon: '🧰' },
+        { id: 'proppro', name: 'Pro++Pro Update', icon: '✨' }
     ];
 
+    const proUpdateBigFeatures = [
+        { title: 'Hyper-Quantum Renderer', desc: 'Render-Pipeline auf Lichtgeschwindigkeit, mit adaptiver Neon-Kalibrierung.' },
+        { title: 'Chrono-Sync Core', desc: 'Zeitachsen-Synchronisierung für perfekte Countdown-Drift-Kontrolle.' },
+        { title: 'VoidShield Firewall', desc: 'Schutz gegen Korruptions-Spikes und Nullpunkt-Stürme.' },
+        { title: 'Neon-Genesis UI', desc: 'Neue UI-Schicht mit pulsierenden, hochreaktiven Panels.' },
+        { title: 'Orbitron AI Pilot', desc: 'Automatisches System-Coaching mit Smart-Boosts & XP-Routen.' },
+        { title: 'Holo-Map Navigator', desc: '3D Missionskarten inkl. Warp-Korridor-Prognose.' },
+        { title: 'Gravity Forge', desc: 'Schwerkraft-Cluster, die Multiplier im Hintergrund stabilisieren.' },
+        { title: 'Quantum Vault 999', desc: 'Feature-Safe, in dem alle 999 Module gelistet & verifiziert sind.' },
+        { title: 'Pulse Cascade Engine', desc: 'Kaskaden-Boosts für Overdrive & Warp in Echtzeit.' },
+        { title: 'Zero-Latency Nexus', desc: 'Ultra-schnelle Event-Bus-Optimierung mit Sofort-Feedback.' }
+    ];
+
+    const proUpdateMicroMeta = {
+        prefixes: ['Nano', 'Pulse', 'Neo', 'Hyper', 'Quantum', 'Zero', 'Turbo', 'Solar', 'Void', 'Flux'],
+        nouns: ['Cache', 'Sync', 'Guard', 'Beacon', 'Loop', 'Link', 'Matrix', 'Shard', 'Relay', 'Boost', 'Scan', 'Grid', 'Lock', 'Stream', 'Node', 'Filter', 'Warp', 'Spark', 'Thread', 'Module'],
+        verbs: ['optimiert', 'stabilisiert', 'verstärkt', 'synchronisiert', 'beschleunigt', 'schärft', 'entkoppelt', 'sichert', 'verfeinert', 'aktiviert']
+    };
+
+    let proUpdateFeatureCache = null;
+
+    const buildProUpdateFeatures = () => {
+        if(proUpdateFeatureCache) return proUpdateFeatureCache;
+        const microCount = 999 - proUpdateBigFeatures.length;
+        const micro = Array.from({ length: microCount }, (_, i) => {
+            const prefix = proUpdateMicroMeta.prefixes[i % proUpdateMicroMeta.prefixes.length];
+            const noun = proUpdateMicroMeta.nouns[(i * 3) % proUpdateMicroMeta.nouns.length];
+            const verb = proUpdateMicroMeta.verbs[(i * 5) % proUpdateMicroMeta.verbs.length];
+            return `Feature ${String(i + 11).padStart(3, '0')}: ${prefix}-${noun} ${verb}`;
+        });
+        proUpdateFeatureCache = { big: proUpdateBigFeatures, micro };
+        return proUpdateFeatureCache;
+    };
+
     const f = {
+        updateTerminalClock: () => {
+            const clock = document.getElementById('terminal-clock');
+            if(clock) clock.innerText = new Date().toLocaleTimeString('de-DE');
+        },
         save: () => {
             const data = { 
                 xp, level, aps, mult, themeIdx, odEndTime, 
@@ -530,15 +585,64 @@
                         </div>
                     `;
                 }
+                if(appId === 'ops') {
+                    return `
+                        <div class="os-panel">
+                            <h3>Ops Center</h3>
+                            <p class="os-muted">Systemsteuerung für kritische Abläufe.</p>
+                            <div class="os-panel-grid">
+                                <button onclick="f.modal('shop')">Shop öffnen</button>
+                                <button onclick="f.modal('update')">Pro++Pro Update</button>
+                                <button onclick="f.modal('settings')">Settings</button>
+                                <button onclick="f.os.openApp('terminal')">Terminal Relay</button>
+                                <button onclick="f.toggleFullscreen()">Fullscreen</button>
+                                <button onclick="f.reboot()">System Reboot</button>
+                            </div>
+                            <div class="os-muted">Letzte Sync: ${new Date().toLocaleTimeString('de-DE')}</div>
+                        </div>
+                    `;
+                }
+                if(appId === 'proppro') {
+                    const featureData = buildProUpdateFeatures();
+                    return `
+                        <div class="os-panel pro-update-panel">
+                            <h3>Pro++Pro Update</h3>
+                            <div class="os-muted">999 neue Funktionen // 10 davon grosssss.</div>
+                            <div class="pro-update-stats">
+                                <div><span>BIG</span><strong>${featureData.big.length}</strong></div>
+                                <div><span>MICRO</span><strong>${featureData.micro.length}</strong></div>
+                                <div><span>TOTAL</span><strong>${featureData.big.length + featureData.micro.length}</strong></div>
+                            </div>
+                            <div class="pro-update-big">
+                                ${featureData.big.map((feature, idx) => `
+                                    <div class="pro-feature-card big">
+                                        <div class="pro-feature-tag">#${String(idx + 1).padStart(2, '0')} BIG</div>
+                                        <h4>${feature.title}</h4>
+                                        <p>${feature.desc}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <div class="os-muted">Mini-Features findest du im Update-Modal oder per PROPPRO.</div>
+                        </div>
+                    `;
+                }
                 return '<div class="os-panel">APP NOT FOUND</div>';
             }
         },
         getXpNext: (l) => Math.floor(Math.pow(l, 2.4) * 500),
+        getBasePrice: (i, offset = 0) => Math.floor(i.cost * Math.pow(1.6, (i.count || 0) + offset)),
         getPrice: (i) => {
-            let base = Math.floor(i.cost * Math.pow(1.6, i.count || 0));
+            let base = f.getBasePrice(i);
             // Preisschwankungen bei Korruption
             if(corruptionLevel >= 1 && Math.random() < 0.1) return Math.floor(base * (Math.random() + 0.5));
             return base;
+        },
+        getBulkPrice: (i, qty) => {
+            let total = 0;
+            for(let n = 0; n < qty; n += 1) {
+                total += f.getBasePrice(i, n);
+            }
+            return total;
         },
         click: (e) => {
             let b = Date.now() < odEndTime ? 12 : 1;
@@ -571,12 +675,28 @@
             const m = document.getElementById('modal'); const c = document.getElementById('modal-content');
             m.style.display = t ? 'flex' : 'none';
             if(t === 'shop') {
-                c.innerHTML = `<h2 style="font-family:Orbitron; color:var(--p); text-align:center;">${corruptionLevel >= 2 ? 'C0RRUPT_SH0P' : 'QUANTUM SHOP'}</h2>`;
+                const totalItems = items.reduce((acc, item) => acc + (item.count || 0), 0);
+                c.innerHTML = `
+                    <h2 style="font-family:Orbitron; color:var(--p); text-align:center;">${corruptionLevel >= 2 ? 'C0RRUPT_SH0P' : 'QUANTUM SHOP'}</h2>
+                    <div class="shop-summary">
+                        <div><span>XP</span><strong>${Math.floor(xp).toLocaleString()}</strong></div>
+                        <div><span>APS</span><strong>${aps.toLocaleString()}</strong></div>
+                        <div><span>MULT</span><strong>x${mult}</strong></div>
+                        <div><span>OWNED</span><strong>${totalItems}</strong></div>
+                    </div>
+                    <div class="shop-hint">Bulk-Käufe aktiv: x5 & MAX Optionen verfügbar.</div>
+                `;
                 items.forEach(i => {
                     const p = f.getPrice(i); const can = xp >= p;
+                    const bulkPrice = f.getBulkPrice(i, 5);
+                    const canBulk = xp >= bulkPrice;
                     c.innerHTML += `<div style="display:flex; justify-content:space-between; padding:10px; margin:5px 0; background:rgba(255,255,255,0.03); border-radius:10px; border:1px solid ${can?'var(--p)':'#222'};">
                         <div style="font-size:10px;"><b>${corruptionLevel >= 2 ? '???' : i.name}</b> [v${i.count||0}]<br><small style="opacity:0.6">${i.d}</small></div>
-                        <button onclick="if(${can}) f.buy(${i.id}, ${p})" ${can ? '' : 'disabled'} style="background:${can?'var(--p)':'#111'}; color:${can ? 'black' : '#666'}; font-family:Orbitron; font-size:9px; border:none; padding:8px 12px; border-radius:6px; cursor:${can ? 'pointer' : 'not-allowed'};">${p.toLocaleString()} XP</button>
+                        <div class="shop-actions">
+                            <button class="shop-btn primary" onclick="if(${can}) f.buy(${i.id}, ${p})" ${can ? '' : 'disabled'}>${p.toLocaleString()} XP</button>
+                            <button class="shop-btn bulk" onclick="if(${canBulk}) f.buyBulk(${i.id}, 5)" ${canBulk ? '' : 'disabled'}>x5 ${bulkPrice.toLocaleString()}</button>
+                            <button class="shop-btn max" onclick="f.buyMax(${i.id})">MAX</button>
+                        </div>
                     </div>`;
                 });
             } else if(t === 'themes') {
@@ -617,6 +737,35 @@
                     ${commandList.map(cmd => `<div class="command-chip">${cmd}</div>`).join('')}
                 </div>
                 <div style="margin-top:12px; font-size:10px; opacity:0.6; text-align:center;">Nutze HELP oder COMMANDS im Terminal für Details.</div>`;
+            } else if(t === 'update') {
+                const featureData = buildProUpdateFeatures();
+                c.innerHTML = `
+                    <h2 style="font-family:Orbitron; color:var(--p); text-align:center;">PRO++PRO UPDATE</h2>
+                    <div class="pro-update-subline">999 NEUE FUNKTIONEN // 10 DAVON GROSSSSS</div>
+                    <div class="pro-update-metrics">
+                        <div><span>BIG</span><strong>${featureData.big.length}</strong></div>
+                        <div><span>MICRO</span><strong>${featureData.micro.length}</strong></div>
+                        <div><span>TOTAL</span><strong>${featureData.big.length + featureData.micro.length}</strong></div>
+                    </div>
+                    <div class="pro-update-big">
+                        ${featureData.big.map((feature, idx) => `
+                            <div class="pro-feature-card big">
+                                <div class="pro-feature-tag">#${String(idx + 1).padStart(2, '0')} BIG</div>
+                                <h4>${feature.title}</h4>
+                                <p>${feature.desc}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="pro-update-divider">FEATURE MATRIX (989 MICRO-UPGRADES)</div>
+                    <div class="pro-feature-grid">
+                        ${featureData.micro.map((feature, idx) => `
+                            <div class="pro-feature-card">
+                                <div class="pro-feature-tag">#${String(idx + 11).padStart(3, '0')}</div>
+                                <p>${feature}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
             } else if(t === 'test') {
                 c.innerHTML = `<h2 style="font-family:Orbitron; color:#ff0055; text-align:center;">ENTE PROTOKOLL</h2>
                 <input type="number" id="test-seconds-input" class="test-input-field" placeholder="Sekunden bis Ziel">
@@ -643,7 +792,14 @@
             corruptionLevel = 0;
             settingsState = { ...settingsDefaults };
             localStorage.removeItem('m26_v75_update');
-            location.reload();
+            document.body.classList.add('rebooting');
+            const status = document.getElementById('reboot-status');
+            const progress = document.getElementById('reboot-progress');
+            if(status) status.innerText = "REBOOTING...";
+            if(progress) progress.style.width = '100%';
+            setTimeout(() => {
+                location.reload();
+            }, 1200);
         },
         buy: (id, p) => {
             const i = items.find(x => x.id === id);
@@ -654,6 +810,43 @@
                 mult += i.m; 
                 f.modal('shop'); 
                 f.save(); 
+            }
+        },
+        buyBulk: (id, qty) => {
+            const i = items.find(x => x.id === id);
+            if(!i) return;
+            let bought = 0;
+            for(let n = 0; n < qty; n += 1) {
+                const price = f.getPrice(i);
+                if(xp < price) break;
+                xp -= price;
+                i.count = (i.count || 0) + 1;
+                aps += i.a;
+                mult += i.m;
+                bought += 1;
+            }
+            if(bought > 0) {
+                f.modal('shop');
+                f.save();
+            }
+        },
+        buyMax: (id) => {
+            const i = items.find(x => x.id === id);
+            if(!i) return;
+            let bought = 0;
+            const maxLoops = 60;
+            while(bought < maxLoops) {
+                const price = f.getPrice(i);
+                if(xp < price) break;
+                xp -= price;
+                i.count = (i.count || 0) + 1;
+                aps += i.a;
+                mult += i.m;
+                bought += 1;
+            }
+            if(bought > 0) {
+                f.modal('shop');
+                f.save();
             }
         },
         log: (m, imp = false) => {
@@ -699,7 +892,7 @@
     const terminalHelpLines = [
         "CORE: HELP, COMMANDS, STATUS, VERSION, TIME, DATE, UPTIME, SYSINFO, PROTOCOL, FULLSCREEN, SETTINGS, OS",
         "STATS: XP, LEVEL, APS, MULT, CORRUPTION, PANIC, COUNTDOWN, PROGRESS, STARS, THEMECOUNT, ITEMCOUNT",
-        "ACTIONS: THEME, NEXTTHEME, THEMEIDX, THEMES, SETTHEME, VAULT, WARP, BOOST, OVERDRIVE, SHOP, TEST, COMMANDS",
+        "ACTIONS: THEME, NEXTTHEME, THEMEIDX, THEMES, SETTHEME, VAULT, WARP, BOOST, OVERDRIVE, SHOP, TEST, COMMANDS, COMMANDCENTER, PROPPRO, UPDATE, FEATURES",
         "TOOLS: SAVE, LOAD, CLEAR, PING, ECHO, TRACE, SCAN, DIAG, CORE, MAP, LOGS, CALIBRATE, ALIGN, SAFEMODE, REBOOT, RESETTHEME"
     ];
 
@@ -741,8 +934,12 @@
         RESETTHEME: { run: () => { f.setTheme(0); f.log("THEME RESET: DEFAULT"); } },
         VAULT: { run: () => { f.modal('themes'); f.log("VAULT: OPEN"); } },
         SHOP: { run: () => { f.modal('shop'); f.log("SHOP: OPEN"); } },
-        COMMANDS: { run: () => { f.modal('commands'); f.log("COMMANDS: OPEN"); } },
+        COMMANDCENTER: { run: () => { f.modal('commands'); f.log("COMMAND CENTER: OPEN"); } },
+        CC: { run: () => terminalCommands.COMMANDCENTER.run() },
         ITEMCOUNT: { run: () => f.log(`ITEMCOUNT: ${items.length}`) },
+        PROPPRO: { run: () => { f.modal('update'); f.log("PRO++PRO UPDATE: READY"); } },
+        UPDATE: { run: () => terminalCommands.PROPPRO.run() },
+        FEATURES: { run: () => f.log("FEATURES: 999 TOTAL // 10 BIG") },
         TEST: { run: () => { f.modal('test'); f.log("TEST MODE: PANEL"); } },
         REBOOT: { run: () => f.reboot() },
         SAVE: { run: () => { f.save(); f.log("SAVE: OK"); } },
@@ -776,20 +973,48 @@
         canvas.width = window.innerWidth; canvas.height = window.innerHeight;
         f.buildStars();
         
-        document.getElementById('t-input').addEventListener('keypress', (e) => {
+        const input = document.getElementById('t-input');
+        input.addEventListener('keydown', (e) => {
+            if(e.key === 'ArrowUp') {
+                if(commandHistory.length === 0) return;
+                historyIndex = Math.min(historyIndex + 1, commandHistory.length - 1);
+                input.value = commandHistory[commandHistory.length - 1 - historyIndex];
+                input.setSelectionRange(input.value.length, input.value.length);
+                e.preventDefault();
+                return;
+            }
+            if(e.key === 'ArrowDown') {
+                if(commandHistory.length === 0) return;
+                historyIndex = Math.max(historyIndex - 1, -1);
+                input.value = historyIndex === -1 ? '' : commandHistory[commandHistory.length - 1 - historyIndex];
+                input.setSelectionRange(input.value.length, input.value.length);
+                e.preventDefault();
+                return;
+            }
+            if(e.key === 'Escape') {
+                input.value = '';
+                historyIndex = -1;
+                return;
+            }
             if(e.key === 'Enter') {
-                const rawInput = e.target.value.trim();
+                const rawInput = input.value.trim();
                 if(!rawInput) return;
+                commandHistory.push(rawInput);
+                if(commandHistory.length > 40) commandHistory.shift();
+                historyIndex = -1;
                 const [first] = rawInput.split(/\s+/);
                 const cmd = first.toUpperCase();
                 const args = rawInput.slice(first.length).trim();
-                if(corruptionLevel >= 1 && Math.random() < 0.15) { f.log(`CRITICAL: CMD_${cmd}_TIMED_OUT`); e.target.value = ''; return; }
+                if(corruptionLevel >= 1 && Math.random() < 0.15) { f.log(`CRITICAL: CMD_${cmd}_TIMED_OUT`); input.value = ''; return; }
                 if(cmd === 'ENTE') f.modal('test');
                 else if(terminalCommands[cmd]) terminalCommands[cmd].run(args, rawInput);
                 else f.log(`COMMAND: ${cmd}`);
-                e.target.value = '';
+                input.value = '';
             }
         });
+        f.updateTerminalClock();
+        if(terminalClockTimer) clearInterval(terminalClockTimer);
+        terminalClockTimer = setInterval(f.updateTerminalClock, 1000);
         f.syncThemeColors();
         f.applySettings();
         f.load();

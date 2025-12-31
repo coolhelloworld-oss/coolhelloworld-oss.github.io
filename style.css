@@ -177,6 +177,23 @@
             border: 1px solid rgba(255,255,255,0.12); border-radius: 12px 12px 0 0; overflow: hidden;
             box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
+        .terminal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 12px;
+            font-family: 'Orbitron';
+            font-size: 9px;
+            letter-spacing: 1px;
+            background: rgba(8, 10, 16, 0.95);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.7);
+        }
+        .terminal-meta {
+            display: flex;
+            gap: 10px;
+            color: var(--p);
+        }
         #terminal-content {
             height: 60px; font-family: 'Fira Code', monospace; font-size: 10px; color: var(--p);
             padding: 8px; overflow-y: auto; display: flex; flex-direction: column-reverse; gap: 4px;
@@ -208,11 +225,36 @@
         .side-btns .btn:nth-child(6) { animation-delay: 3s; }
         .side-btns .btn:nth-child(7) { animation-delay: 3.6s; }
         .side-btns .btn:nth-child(8) { animation-delay: 4.2s; }
+        .side-btns .btn:nth-child(9) { animation-delay: 4.8s; }
+        .side-btns .btn:nth-child(10) { animation-delay: 5.4s; }
 
         #final-screen {
             position: fixed; inset: 0; background: white; z-index: 100000;
             display: none; flex-direction: column; align-items: center; justify-content: center;
             text-align: center; font-family: 'Orbitron'; color: black;
+        }
+        body.rebooting #final-screen {
+            background: radial-gradient(circle at top, #ffffff, #dfe4ff 65%, #0a0a12 100%);
+        }
+        .reboot-status {
+            margin-top: 14px;
+            font-size: 10px;
+            letter-spacing: 3px;
+            color: rgba(0,0,0,0.6);
+        }
+        .reboot-progress {
+            width: 220px;
+            height: 6px;
+            margin-top: 10px;
+            border-radius: 999px;
+            background: rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        .reboot-progress-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #000, #5a6cff, #000);
+            transition: width 1s ease;
         }
 
         #modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(15px); }
@@ -251,6 +293,167 @@
             font-family: 'Fira Code';
             font-size: 9px;
             color: rgba(255,255,255,0.8);
+        }
+
+        .shop-summary {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 8px;
+            margin: 12px 0;
+        }
+        .shop-summary div {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            padding: 8px;
+            text-align: center;
+        }
+        .shop-summary span {
+            display: block;
+            font-size: 8px;
+            letter-spacing: 2px;
+            opacity: 0.6;
+        }
+        .shop-summary strong {
+            font-family: 'Orbitron';
+            font-size: 12px;
+            color: var(--p);
+        }
+        .shop-hint {
+            font-size: 9px;
+            text-align: center;
+            opacity: 0.6;
+            margin-bottom: 10px;
+        }
+        .shop-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .shop-actions .shop-btn {
+            background: rgba(10,10,20,0.8);
+            color: white;
+            font-family: 'Orbitron';
+            font-size: 9px;
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .shop-actions .shop-btn.primary {
+            background: var(--p);
+            color: black;
+        }
+        .shop-actions .shop-btn.bulk {
+            background: rgba(255,255,255,0.06);
+        }
+        .shop-actions .shop-btn.max {
+            background: linear-gradient(120deg, rgba(112,0,255,0.8), rgba(0,242,255,0.8));
+        }
+        .shop-actions .shop-btn:disabled {
+            color: #666;
+            cursor: not-allowed;
+            background: #111;
+            border-color: #222;
+        }
+        .shop-actions .shop-btn:not(:disabled):hover {
+            border-color: var(--p);
+            box-shadow: 0 0 10px var(--glow);
+        }
+
+        .pro-update-subline {
+            font-size: 9px;
+            opacity: 0.7;
+            text-align: center;
+            letter-spacing: 2px;
+            margin-bottom: 14px;
+        }
+
+        .pro-update-metrics,
+        .pro-update-stats {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .pro-update-metrics div,
+        .pro-update-stats div {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            text-align: center;
+        }
+
+        .pro-update-metrics span,
+        .pro-update-stats span {
+            font-size: 8px;
+            letter-spacing: 2px;
+            opacity: 0.6;
+        }
+
+        .pro-update-metrics strong,
+        .pro-update-stats strong {
+            font-size: 18px;
+            font-family: 'Orbitron';
+            color: var(--p);
+        }
+
+        .pro-update-divider {
+            margin: 18px 0 12px;
+            font-family: 'Orbitron';
+            font-size: 10px;
+            letter-spacing: 2px;
+            opacity: 0.7;
+            text-align: center;
+        }
+
+        .pro-update-big {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .pro-feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 8px;
+        }
+
+        .pro-feature-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 10px;
+            font-size: 9px;
+            line-height: 1.4;
+            color: rgba(255,255,255,0.75);
+        }
+
+        .pro-feature-card.big {
+            background: rgba(0,0,0,0.5);
+            border-color: var(--p);
+            box-shadow: 0 0 15px var(--glow);
+        }
+
+        .pro-feature-card h4 {
+            margin: 6px 0 4px;
+            font-size: 11px;
+            color: white;
+            font-family: 'Orbitron';
+        }
+
+        .pro-feature-tag {
+            display: inline-block;
+            font-size: 8px;
+            letter-spacing: 2px;
+            color: var(--p);
+            opacity: 0.8;
         }
 
         .progress-bar-container { position: fixed; bottom: 0; left: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.05); }

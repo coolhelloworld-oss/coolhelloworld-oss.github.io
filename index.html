@@ -54,10 +54,18 @@
     </div>
 
     <div class="terminal-container" id="ui-term">
+        <div class="terminal-header">
+            <div class="terminal-title">M26 TERMINAL</div>
+            <div class="terminal-meta">
+                <span class="terminal-pill" id="terminal-status">LIVE</span>
+                <span class="terminal-pill ghost" id="terminal-latency">LAT 12ms</span>
+            </div>
+        </div>
         <div id="terminal-content"></div>
-        <div style="padding: 6px 12px; background: #08080a; display: flex; align-items: center; border-top: 1px solid rgba(255,255,255,0.05);">
-            <span style="color:var(--p); font-family:'Fira Code'; font-size:11px; margin-right:8px;">></span>
-            <input type="text" id="t-input" style="background:transparent; border:none; color:white; outline:none; font-family:'Fira Code'; font-size:11px; width:100%;" placeholder="Systemzugriff..." autocomplete="off">
+        <div class="terminal-input">
+            <span class="terminal-prompt">></span>
+            <input type="text" id="t-input" placeholder="Systemzugriff... (HELP für Befehle)" autocomplete="off">
+            <span class="terminal-cursor" aria-hidden="true"></span>
         </div>
     </div>
 
@@ -124,7 +132,11 @@
         { name: 'EMBER', p: '#ff6b35', s: '#ffcc00', bg: '#1b0803', bg2: '#100403' },
         { name: 'GLACIER', p: '#8ae1ff', s: '#5b6bff', bg: '#020a14', bg2: '#03061a' },
         { name: 'NOIR', p: '#d3d8ff', s: '#7a7f99', bg: '#040406', bg2: '#0a0a12' },
-        { name: 'SIGNAL', p: '#24ff8f', s: '#00d1ff', bg: '#02100f', bg2: '#02141e' }
+        { name: 'SIGNAL', p: '#24ff8f', s: '#00d1ff', bg: '#02100f', bg2: '#02141e' },
+        { name: 'VOLT', p: '#7df9ff', s: '#ffe600', bg: '#05070a', bg2: '#0b0f14' },
+        { name: 'OBSIDIAN', p: '#8b91a1', s: '#ff6bd6', bg: '#050608', bg2: '#0b0e16' },
+        { name: 'ZENITH', p: '#8fffe3', s: '#5c7cff', bg: '#020914', bg2: '#041727' },
+        { name: 'ECLIPSE', p: '#ff5c7c', s: '#7c00ff', bg: '#14050f', bg2: '#0a0208' }
     ];
     const generatedThemes = Array.from({ length: 200 }, (_, i) => {
         const hue = Math.round((i * 360) / 200);
@@ -149,7 +161,11 @@
         { id: 7, name: 'Chrono Lattice', cost: 4500000, m: 2500, a: 60000, d: "Zeitgitter-Cache." },
         { id: 8, name: 'Singularity Core', cost: 9000000, m: 4000, a: 110000, d: "Schwerkraft-Matrix." },
         { id: 9, name: 'Arc Reactor', cost: 15000000, m: 6500, a: 150000, d: "Reaktor-Overdrive." },
-        { id: 10, name: 'Phoenix Engine', cost: 24000000, m: 9000, a: 210000, d: "Neustart-Impulse." }
+        { id: 10, name: 'Phoenix Engine', cost: 24000000, m: 9000, a: 210000, d: "Neustart-Impulse." },
+        { id: 11, name: 'Stellar Loom', cost: 42000000, m: 13000, a: 320000, d: "Webt Sterne zu XP." },
+        { id: 12, name: 'Prism Array', cost: 68000000, m: 18000, a: 460000, d: "Farbkern-Multiplikator." },
+        { id: 13, name: 'Gravity Forge', cost: 105000000, m: 25000, a: 620000, d: "Massiver Feld-Boost." },
+        { id: 14, name: 'Event Horizon', cost: 160000000, m: 36000, a: 820000, d: "Letzte Stufe vor Zero." }
     ];
 
     const settingsDefaults = {
@@ -658,9 +674,11 @@
         },
         log: (m, imp = false) => {
             const t = document.getElementById('terminal-content'); const d = document.createElement('div');
+            const time = new Date().toLocaleTimeString('de-DE');
             if(corruptionLevel >= 1 && Math.random() < 0.3) m = m.replace(/[A-E]/g, '0').replace(/[S-Z]/g, '#');
-            if(imp) d.style.color = 'var(--p)'; d.innerHTML = `<span>[SYS]</span> ${m}`;
-            t.prepend(d); if(t.childNodes.length > 20) t.lastChild.remove();
+            d.className = `terminal-line${imp ? ' important' : ''}`;
+            d.innerHTML = `<span class="terminal-time">${time}</span>${imp ? '<span class="terminal-tag">SYS</span>' : ''}<span class="terminal-msg">${m}</span>`;
+            t.prepend(d); if(t.childNodes.length > 24) t.lastChild.remove();
         },
         nextTheme: () => {
             f.setTheme(themeIdx + 1);
@@ -854,6 +872,26 @@
             if(panicLevel > 0) stage.classList.add('p-panic');
         }
         document.documentElement.style.setProperty('--panic', panicLevel);
+
+        const terminalStatus = document.getElementById('terminal-status');
+        if(terminalStatus) {
+            terminalStatus.classList.remove('warn', 'crit');
+            if(corruptionLevel >= 2) {
+                terminalStatus.innerText = "CRIT";
+                terminalStatus.classList.add('crit');
+            } else if(corruptionLevel >= 1) {
+                terminalStatus.innerText = "WARN";
+                terminalStatus.classList.add('warn');
+            } else {
+                terminalStatus.innerText = "LIVE";
+            }
+        }
+        const terminalLatency = document.getElementById('terminal-latency');
+        if(terminalLatency) {
+            const baseLatency = 8 + (warpActive ? 6 : 0) + (corruptionLevel * 12);
+            const jitter = Math.random() * 10;
+            terminalLatency.innerText = `LAT ${Math.round(baseLatency + jitter)}ms`;
+        }
 
         // UI Update
         document.getElementById('xp-display').innerText = Math.floor(xp).toLocaleString() + " XP";

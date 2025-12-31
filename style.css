@@ -174,12 +174,93 @@
 
         .terminal-container {
             width: 100%; max-width: 450px; background: rgba(0,0,0,0.9);
-            border: 1px solid rgba(255,255,255,0.12); border-radius: 12px 12px 0 0; overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; overflow: hidden;
             box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
+        .terminal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: linear-gradient(90deg, rgba(8,10,16,0.9), rgba(2,2,6,0.95));
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .terminal-title {
+            font-family: 'Orbitron';
+            font-size: 9px;
+            letter-spacing: 2px;
+            color: var(--p);
+            text-transform: uppercase;
+        }
+        .terminal-meta { display: flex; gap: 6px; }
+        .terminal-pill {
+            border-radius: 999px;
+            padding: 2px 8px;
+            font-size: 8px;
+            letter-spacing: 1px;
+            font-family: 'Fira Code';
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: var(--p);
+        }
+        .terminal-pill.ghost { color: rgba(255,255,255,0.6); }
+        .terminal-pill.warn { color: #ffcc00; border-color: rgba(255,204,0,0.5); }
+        .terminal-pill.crit { color: #ff3b6b; border-color: rgba(255,59,107,0.6); }
         #terminal-content {
-            height: 60px; font-family: 'Fira Code', monospace; font-size: 10px; color: var(--p);
-            padding: 8px; overflow-y: auto; display: flex; flex-direction: column-reverse; gap: 4px;
+            height: 84px; font-family: 'Fira Code', monospace; font-size: 10px; color: var(--p);
+            padding: 10px 12px; overflow-y: auto; display: flex; flex-direction: column-reverse; gap: 6px;
+            background: linear-gradient(180deg, rgba(5,6,10,0.9), rgba(2,2,6,0.95));
+        }
+        .terminal-line {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: rgba(255,255,255,0.75);
+        }
+        .terminal-line .terminal-time { color: rgba(255,255,255,0.4); font-size: 9px; }
+        .terminal-line .terminal-tag {
+            background: rgba(255,255,255,0.08);
+            color: var(--p);
+            padding: 1px 4px;
+            border-radius: 4px;
+            font-size: 8px;
+            letter-spacing: 1px;
+        }
+        .terminal-line .terminal-msg { color: rgba(255,255,255,0.85); }
+        .terminal-line.important .terminal-msg { color: var(--p); text-shadow: 0 0 8px var(--glow); }
+        .terminal-input {
+            padding: 8px 12px;
+            background: #08080a;
+            display: flex;
+            align-items: center;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            gap: 8px;
+        }
+        .terminal-prompt {
+            color: var(--p);
+            font-family: 'Fira Code';
+            font-size: 11px;
+        }
+        #t-input {
+            background: transparent;
+            border: none;
+            color: white;
+            outline: none;
+            font-family: 'Fira Code';
+            font-size: 11px;
+            width: 100%;
+        }
+        .terminal-cursor {
+            width: 8px;
+            height: 12px;
+            background: var(--p);
+            box-shadow: 0 0 6px var(--glow);
+            animation: cursor-blink 1s steps(2, end) infinite;
+        }
+
+        @keyframes cursor-blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
         }
 
         .info-panel {
@@ -281,7 +362,7 @@
         }
         .reboot-btn:hover { background: white; color: black; transform: scale(1.1); }
 
-        body.terminal-compact #terminal-content { height: 40px; }
+        body.terminal-compact #terminal-content { height: 50px; }
         body.reduce-motion * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
         body.big-numbers .v { font-size: 2.8rem; }
         body.high-contrast { color: #ffffff; }
